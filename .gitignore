@@ -1,0 +1,6 @@
+.idea/
+.claude/
+*.egg-info
+build/
+dist/
+.env

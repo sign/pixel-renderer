@@ -1,0 +1,39 @@
+# act --container-architecture linux/amd64 -j test
+
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-activate-base: true
+          python-version: "3.12"
+          channels: conda-forge,defaults
+          channel-priority: true
+
+      - name: Install Conda Dependencies
+        shell: bash -l {0}
+        run: |
+          conda install python=3.12 -y
+          conda install -c conda-forge pycairo pygobject manimpango -y
+
+      - name: Install Package
+        shell: bash -l {0}
+        run: pip install ".[dev]"
+
+      - name: Test Code
+        shell: bash -l {0}
+        run: pytest -n auto --dist loadscope

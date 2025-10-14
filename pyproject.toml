@@ -11,7 +11,7 @@ dependencies = [
     "numpy",
     "Pillow", # To create Images from arrays
     "utf8-tokenizer", # For visualization of control tokens / whitespace
-    "signwriting @ git+https://github.com/sign-language-processing/signwriting", # To render SignWriting images
+    "signwriting", # To render SignWriting images
     "lxml", # for XML parsing in fontconfig TODO remove once https://github.com/sign/WeLT/issues/24
 ]
 

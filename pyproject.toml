@@ -3,7 +3,7 @@ name = "pixel-renderer"
 description = "Text renderer for PIXEL models"
 version = "0.0.1"
 authors = [
-    { name = "Ilker Kesen", email = "" },
+    { name = "Ilker Kesen", email = "ilkerksn@gmail.com" },
     { name = "Amit Moryossef", email = "amit@sign.mt" },
 ]
 readme = "README.md"

@@ -10,7 +10,7 @@ class TestRenderer(unittest.TestCase):
     def test_single_text_has_black_pixels(self):
         """Test that rendering a single text produces black pixels in the image."""
         text = "Hello World"
-        image = render_text_image(text, block_size=32, dpi=120, font_size=12)
+        image = render_text_image(text, block_size=32, font_size=20)
 
         # Convert to numpy array
         img_array = np.array(image)
@@ -23,7 +23,7 @@ class TestRenderer(unittest.TestCase):
 
     def test_empty_text_no_black_pixels(self):
         """Test that rendering empty text produces no black pixels (all white)."""
-        image = render_text_image("", block_size=32, dpi=120, font_size=12)
+        image = render_text_image("", block_size=32, font_size=20)
 
         # Convert to numpy array
         img_array = np.array(image)
@@ -36,7 +36,7 @@ class TestRenderer(unittest.TestCase):
     def test_multiple_different_texts_are_different(self):
         """Test that different texts produce different deconstructions."""
         texts = ["a", "b"]
-        renders = [render_text_image(text, block_size=32, dpi=120, font_size=12) for text in texts]
+        renders = [render_text_image(text, block_size=32, font_size=20) for text in texts]
         img_array = [np.array(render) for render in renders]
         img_tensor = [torch.tensor(arr) for arr in img_array]
 
@@ -52,7 +52,7 @@ class TestRenderer(unittest.TestCase):
     def test_multiple_identical_texts_deconstruction(self):
         """Test that identical texts produce identical deconstructions."""
         texts = ["a", "a", "a", "a"]
-        renders = [render_text_image(text, block_size=32, dpi=120, font_size=12) for text in texts]
+        renders = [render_text_image(text, block_size=32, font_size=20) for text in texts]
         img_array = [np.array(render) for render in renders]
         img_tensor = [torch.tensor(arr) for arr in img_array]
 
@@ -72,8 +72,8 @@ class TestRenderer(unittest.TestCase):
         text = "consistent test"
 
         # Render the same text twice
-        image1 = render_text_image(text, block_size=32, dpi=120, font_size=12)
-        image2 = render_text_image(text, block_size=32, dpi=120, font_size=12)
+        image1 = render_text_image(text, block_size=32, font_size=20)
+        image2 = render_text_image(text, block_size=32, font_size=20)
 
         # Convert to arrays
         array1 = np.array(image1)
@@ -85,7 +85,7 @@ class TestRenderer(unittest.TestCase):
         assert are_identical, "Rendering the same text should produce identical results"
 
     def test_newline_text_has_black_pixels(self):
-        image = render_text_image("\n", block_size=32, dpi=120, font_size=12)
+        image = render_text_image("\n", block_size=32, font_size=20)
 
         # Convert to numpy array
         img_array = np.array(image)
@@ -98,7 +98,7 @@ class TestRenderer(unittest.TestCase):
 
     def test_signwriting_renders_correctly(self):
         text = "𝠀񀀒񀀚񋚥񋛩𝠃𝤟𝤩񋛩𝣵𝤐񀀒𝤇𝣤񋚥𝤐𝤆񀀚𝣮𝣭"
-        image = render_text_image(text, block_size=32, dpi=120, font_size=12)
+        image = render_text_image(text, block_size=32, font_size=20)
 
         assert image.size == (64, 96), "Rendered image size should be (64, 96)"
 

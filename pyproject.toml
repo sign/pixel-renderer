@@ -50,4 +50,4 @@ select = [
 
 [tool.pytest.ini_options]
 addopts = "-v"
-testpaths = ["tests", "pixel_renderer", "font_configurator"]
+testpaths = ["tests", "pixel_renderer", "font_configurator", "font_download"]

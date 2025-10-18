@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from enum import StrEnum, unique
 from typing import TYPE_CHECKING, ClassVar
 
-from lxml import etree
+from lxml import etree  # type: ignore[import-untyped]
 
 from font_configurator.fontconfig_templates import (
     DARWIN_FONTCONFIG_REMOVE_SYSTEM_FONTS_PATTERNS,

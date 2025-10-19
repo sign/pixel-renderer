@@ -218,9 +218,7 @@ __marimo__/
 
 .idea/
 .claude/
-
-
+.DS_Store
 
 dev.ipynb
-font_download/create_reproducible_config.py
 demo_renderer

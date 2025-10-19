@@ -1,5 +1,6 @@
 # Copyright 2025- Pavel Stepachev
 # SPDX-License-Identifier: Apache-2.0
+import concurrent.futures
 import json
 import logging
 import pathlib
@@ -32,18 +33,35 @@ class ReproducibleFontDownload:
         self.logger.debug(f"Downloading file from {url}")
 
         try:
-            with requests.get(url, stream=True, timeout=10) as response:
+            with requests.get(url, stream=True, timeout=30) as response:
                 response.raise_for_status()
+
+                # get content length for progress tracking (optional)
+                total_size = int(response.headers.get("content-length", 0))  # noqa: F841
+
                 with dest_path.open("wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
+                    # larger chunk size for better throughput
+                    for chunk in response.iter_content(chunk_size=1024 * 1024):  # 1MB chunks
+                        if chunk:  # filter out keep-alive chunks
+                            f.write(chunk)
+
             self.logger.debug(f"Successfully downloaded file to {dest_path}")
             return True
         except requests.RequestException as e:
             self.logger.error(f"Failed to download file from {url}: {e}")
             if dest_path.exists():
-                dest_path.unlink()  # remove incomplete file
+                dest_path.unlink()
             return False
+
+    def _download_font_parallel(self, source: FontSource, fonts_dir: pathlib.Path) -> FontEntity | None:
+        """Download a single font (helper for parallel downloads)."""
+        font_path = fonts_dir.joinpath(source.name)
+
+        if self._download_file(url=source.url, dest_path=font_path):
+            return FontEntity(name=source.name, url=source.url, file_path=font_path)
+        else:
+            self.logger.warning(f"Failed to download font: {source.name}")
+            return None
 
     def _verify_font_integrity(self, font_path: pathlib.Path, expected_sha256: str) -> bool:
         """Verify font file integrity using SHA256 hash."""
@@ -104,6 +122,7 @@ class ReproducibleFontDownload:
         sources: list[FontSource],
         config_name: str,
         dest_dir: str | pathlib.Path | None = None,
+        max_workers: int = 5,
     ) -> pathlib.Path:
         """
         Download fonts and save configuration.
@@ -112,6 +131,7 @@ class ReproducibleFontDownload:
             sources: List of FontSource objects to download
             config_name: Name for the configuration
             dest_dir: Optional custom directory for config file (default: cache/configs)
+            max_workers: Maximum number of parallel downloads (default: 5)
 
         Returns:
             Path to the saved configuration file
@@ -128,18 +148,16 @@ class ReproducibleFontDownload:
 
         font_entities: list[FontEntity] = []
 
-        for source in sources:
-            font_path = fonts_dir.joinpath(source.name)
+        # Parallel downloading
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_source = {
+                executor.submit(self._download_font_parallel, source, fonts_dir): source for source in sources
+            }
 
-            if self._download_file(url=source.url, dest_path=font_path):
-                font_entity = FontEntity(
-                    name=source.name,
-                    url=source.url,
-                    file_path=font_path,
-                )
-                font_entities.append(font_entity)
-            else:
-                self.logger.warning(f"Failed to download font: {source.name}")
+            for future in concurrent.futures.as_completed(future_to_source):
+                result = future.result()
+                if result:
+                    font_entities.append(result)
 
         if not font_entities:
             raise RuntimeError("No fonts were successfully downloaded")

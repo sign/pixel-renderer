@@ -486,6 +486,12 @@ class TestDownloadFile:
 
         with patch("requests.get") as mock_get:
             mock_response = Mock()
+
+            # Fix: Create proper headers mock
+            headers_mock = Mock()
+            headers_mock.get = Mock(return_value="1024")
+            mock_response.headers = headers_mock
+
             mock_response.iter_content = Mock(return_value=[b"fake font data"])
             mock_response.raise_for_status = Mock()
             mock_response.__enter__ = Mock(return_value=mock_response)
@@ -494,8 +500,9 @@ class TestDownloadFile:
 
             result = downloader._download_file(url=mock_fonts[0].url, dest_path=dest_path)
 
-        assert result is True
-        assert dest_path.exists()
+            assert result is True
+            assert dest_path.exists()
+            assert dest_path.read_bytes() == b"fake font data"
 
     def test_download_file_failure(
         self,

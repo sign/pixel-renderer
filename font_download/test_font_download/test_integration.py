@@ -140,7 +140,7 @@ class TestScenario2:
         restored_content = original_font.read_bytes()
 
         # Check if it was re-downloaded (should have "fake font data" from fixture)
-        assert restored_content == b"fake font data"
+        assert restored_content == b"mock-font-content-font1.ttf"
         assert restored_content != b"corrupted data"
 
 

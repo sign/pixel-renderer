@@ -221,4 +221,4 @@ __marimo__/
 .DS_Store
 
 dev.ipynb
-demo_renderer
+demos_output

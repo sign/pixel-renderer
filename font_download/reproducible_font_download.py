@@ -104,7 +104,7 @@ class ReproducibleFontDownload:
             self.logger.error(f"Failed to read configuration file {config_path}: {e}")
             raise
 
-    def _resolve_config_path(self, config_name_or_path: str | pathlib.Path) -> pathlib.Path:
+    def resolve_config_path(self, config_name_or_path: str | pathlib.Path) -> pathlib.Path:
         """Resolve config name or path to actual config file path."""
         if isinstance(config_name_or_path, str):
             config_name_or_path = pathlib.Path(config_name_or_path)
@@ -189,7 +189,7 @@ class ReproducibleFontDownload:
             >>> fonts_dir = downloader.from_config("my_fonts")
             >>> fonts_dir = downloader.from_config("/path/to/config.json")
         """
-        config_path = self._resolve_config_path(config_name_or_path)
+        config_path = self.resolve_config_path(config_name_or_path)
         config_data = self._load_config_file(config_path)
 
         # Extract config name from the file name
@@ -245,7 +245,7 @@ class ReproducibleFontDownload:
         cls,
         sources: list[FontSource],
         config_name: str,
-        cache_dir: str | pathlib.Path = ".cache/pixel_renderer/fonts",
+        cache_dir: str | pathlib.Path | None = ".cache/pixel_renderer/fonts",
     ) -> pathlib.Path:
         """
         Convenience method to create config and return fonts directory in one step.
@@ -258,6 +258,9 @@ class ReproducibleFontDownload:
         Returns:
             Path to the directory containing all fonts
         """
+        if cache_dir is None:
+            cache_dir = ".cache/pixel_renderer/fonts"
+
         instance = cls(cache_dir=cache_dir)
         instance.save_config(sources=sources, config_name=config_name)
         return instance.from_config(config_name)

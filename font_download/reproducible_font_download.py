@@ -167,10 +167,11 @@ class ReproducibleFontDownload:
 
         return config_path
 
-    def from_config(
+    def from_config(  # noqa: C901
         self,
         config_name_or_path: str | pathlib.Path,
         force_download: bool = False,
+        max_workers: int = 5,
     ) -> pathlib.Path:
         """
         Load fonts from configuration.
@@ -180,6 +181,7 @@ class ReproducibleFontDownload:
         Args:
             config_name_or_path: Config name (e.g., "my_fonts") or path to config file
             force_download: If True, re-download all fonts even if they exist
+            max_workers: Maximum number of parallel downloads (default: 5)
 
         Returns:
             Path to the directory containing all fonts
@@ -196,13 +198,14 @@ class ReproducibleFontDownload:
         config_name = config_path.stem
         fonts_dir = self._create_subdir_in_cache_dir(subdir_name=config_name)
 
-        fonts_processed = 0
-        fonts_downloaded = 0
+        # Separate fonts into those needing download and those already cached
+        fonts_to_download = []
+        fonts_already_cached = []
 
         for item in config_data:
             try:
                 font_name = item["name"]
-                font_url = item["url"]
+                font_url = item["url"]  # noqa: F841
                 expected_sha256 = item.get("sha256", "")
                 font_path = fonts_dir.joinpath(font_name)
 
@@ -215,28 +218,46 @@ class ReproducibleFontDownload:
                         should_download = True
 
                 if should_download:
-                    self.logger.info(f"Downloading font: {font_name}")
-                    if self._download_file(url=font_url, dest_path=font_path):
-                        fonts_downloaded += 1
-
-                        # Verify downloaded file if hash is provided
-                        if expected_sha256:
-                            if not self._verify_font_integrity(font_path, expected_sha256):
-                                self.logger.error(f"Downloaded font {font_name} failed integrity check")
-                                font_path.unlink()
-                                continue
-                    else:
-                        self.logger.error(f"Failed to download font: {font_name}")
-                        continue
+                    fonts_to_download.append(item)
                 else:
+                    fonts_already_cached.append(font_name)
                     self.logger.debug(f"Font {font_name} already exists and is valid")
-
-                fonts_processed += 1
 
             except (KeyError, TypeError) as e:
                 self.logger.error(f"Invalid font entry in config: {e}")
                 continue
 
+        # Download fonts in parallel
+        fonts_downloaded = 0
+        if fonts_to_download:
+
+            def download_font_with_verification(item: dict) -> bool:
+                font_name = item["name"]
+                font_url = item["url"]
+                expected_sha256 = item.get("sha256", "")
+                font_path = fonts_dir.joinpath(font_name)
+
+                self.logger.info(f"Downloading font: {font_name}")
+                if self._download_file(url=font_url, dest_path=font_path):
+                    # Verify downloaded file if hash is provided
+                    if expected_sha256:
+                        if not self._verify_font_integrity(font_path, expected_sha256):
+                            self.logger.error(f"Downloaded font {font_name} failed integrity check")
+                            font_path.unlink()
+                            return False
+                    return True
+                else:
+                    self.logger.error(f"Failed to download font: {font_name}")
+                    return False
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(download_font_with_verification, item): item for item in fonts_to_download}
+
+                for future in concurrent.futures.as_completed(futures):
+                    if future.result():
+                        fonts_downloaded += 1
+
+        fonts_processed = len(fonts_already_cached) + fonts_downloaded
         self.logger.info(f"Fonts ready in {fonts_dir} ({fonts_processed} total, {fonts_downloaded} downloaded)")
         return fonts_dir
 

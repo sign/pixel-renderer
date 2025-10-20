@@ -1,4 +1,3 @@
-import pathlib
 from functools import cache
 
 import cairo
@@ -104,20 +103,3 @@ def render_text(text: str, block_size: int = 16, font_size: int = 12) -> np.ndar
 def render_text_image(text: str, block_size: int = 16, font_size: int = 12) -> Image.Image:
     img_array = render_text(text, block_size=block_size, font_size=font_size)
     return Image.fromarray(img_array)
-
-
-def main():
-    result_dir = pathlib.Path("demo_renderer")
-    result_dir.mkdir(parents=True, exist_ok=True)
-
-    # Example: render mixed text with emojis and newlines
-    text = "hello🤗\r\n\x02 "
-    image = render_text_image(text=text, block_size=16, font_size=20)
-    image_path = result_dir.joinpath("hello_example.png")
-    image.save(str(image_path))
-    print(f"Rendered {text} and saved as 'hello_example.png'")
-    print(f"Image size: {image.size}")
-
-
-if __name__ == "__main__":
-    main()

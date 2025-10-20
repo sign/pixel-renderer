@@ -1,9 +1,12 @@
+import logging
 import pathlib
 
 from font_download.reproducible_font_download import ReproducibleFontDownload
 from font_download.reproducible_fonts.honk import FONTS_HONK
 from font_download.reproducible_fonts.noto_sans import FONTS_NOTO_SANS, FONTS_NOTO_SANS_BW, FONTS_NOTO_SANS_MINIMAL
 from font_download.tools import FontSource
+
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 
 
 def create_font_download_configs(

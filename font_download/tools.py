@@ -32,7 +32,7 @@ class FontSource:
     url: str
     name: str = "placeholder_name"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.prepare_name()
 
     def prepare_name(self) -> str:
@@ -54,7 +54,7 @@ class FontEntity:
     file_path: pathlib.Path
     sha256: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not isinstance(self.file_path, pathlib.Path):
             self.file_path = pathlib.Path(self.file_path)
 
@@ -94,7 +94,7 @@ def _check_no_duplicates(*font_lists: list[FontSource]) -> list[FontSource]:
         url_map[font.url].append(idx)
         name_map[font.name].append(idx)
 
-    # Check for duplicates
+    # check for duplicates
     duplicate_urls = {url: indices for url, indices in url_map.items() if len(indices) > 1}
     duplicate_names = {name: indices for name, indices in name_map.items() if len(indices) > 1}
 

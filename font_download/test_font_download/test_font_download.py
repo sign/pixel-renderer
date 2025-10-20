@@ -43,7 +43,10 @@ class TestSaveConfig:
     """Test save_config functionality."""
 
     def test_save_config_basic(
-        self, tmp_path: pathlib.Path, font_sources: list[FontSource], fake_download: None
+        self,
+        tmp_path: pathlib.Path,
+        font_sources: list[FontSource],
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
         config_path = downloader.save_config(sources=font_sources, config_name="test_fonts")
@@ -52,12 +55,16 @@ class TestSaveConfig:
         fonts_dir = tmp_path.joinpath("test_fonts")
         assert fonts_dir.exists()
 
-        # All fonts should have been "downloaded" by fake_download
+        # all fonts should have been "downloaded" by fake_download
         for source in font_sources:
             assert fonts_dir.joinpath(source.name).exists()
 
     def test_save_config_creates_json(
-        self, tmp_path: pathlib.Path, font_sources: list[FontSource], fake_download: None, mock_fonts: list[FontEntity]
+        self,
+        tmp_path: pathlib.Path,
+        font_sources: list[FontSource],
+        fake_download: None,  # noqa: ARG002
+        mock_fonts: list[FontEntity],  # noqa: ARG002
     ) -> None:
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
         config_path = downloader.save_config(sources=font_sources, config_name="test_fonts")
@@ -68,7 +75,10 @@ class TestSaveConfig:
             assert set(font_entry.keys()) == {"name", "url", "sha256"}
 
     def test_save_config_custom_dest_dir(
-        self, tmp_path: pathlib.Path, font_sources: list[FontSource], fake_download: None
+        self,
+        tmp_path: pathlib.Path,
+        font_sources: list[FontSource],
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
         custom_dir = tmp_path.joinpath("custom_configs")
@@ -81,7 +91,7 @@ class TestSaveConfig:
         self, tmp_path: pathlib.Path, font_sources: list[FontSource]
     ) -> None:
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
-        with patch.object(downloader, "_download_file", return_value=False):
+        with patch.object(downloader, "_download_file", return_value=False):  # noqa: SIM117
             with pytest.raises(RuntimeError, match="No fonts were successfully downloaded"):
                 downloader.save_config(sources=font_sources, config_name="test_fonts")
 
@@ -109,26 +119,26 @@ class TestFromConfig:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test loading fonts by config name."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # First, create a config
+        # first, create a config
         downloader.save_config(sources=font_sources, config_name="test_fonts")
 
-        # Clear fonts to test re-download
+        # clear fonts to test re-download
         fonts_dir = tmp_path.joinpath("test_fonts")
         for font_file in fonts_dir.glob("*.ttf"):
             font_file.unlink()
 
-        # Load from config by name
+        # load from config by name
         result_dir = downloader.from_config("test_fonts")
 
         assert result_dir == fonts_dir
         assert result_dir.exists()
 
-        # Verify all fonts were downloaded
+        # verify all fonts were downloaded
         for source in font_sources:
             assert result_dir.joinpath(source.name).exists()
 
@@ -136,14 +146,14 @@ class TestFromConfig:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test loading fonts by config path."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
         config_path = downloader.save_config(sources=font_sources, config_name="test_fonts")
 
-        # Load from config by path
+        # load from config by path
         result_dir = downloader.from_config(config_path)
 
         assert result_dir.exists()
@@ -154,19 +164,19 @@ class TestFromConfig:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test that existing valid fonts are not re-downloaded."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create config and download fonts
+        # create config and download fonts
         downloader.save_config(sources=font_sources, config_name="test_fonts")
 
-        # Track if download is called
+        # track if download is called
         with patch.object(downloader, "_download_file") as mock_download:
             result_dir = downloader.from_config("test_fonts")
 
-            # Should not download since fonts exist
+            # should not download since fonts exist
             mock_download.assert_not_called()
 
         assert result_dir.exists()
@@ -175,34 +185,34 @@ class TestFromConfig:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test force_download parameter re-downloads all fonts."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create config
+        # create config
         downloader.save_config(sources=font_sources, config_name="test_fonts")
 
-        # Track downloads
+        # track downloads
         with patch.object(downloader, "_download_file", return_value=True) as mock_download:
             result_dir = downloader.from_config("test_fonts", force_download=True)  # noqa: F841
 
-            # Should download all fonts
+            # should download all fonts
             assert mock_download.call_count == len(font_sources)
 
     def test_from_config_integrity_check_passes(
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test that integrity check passes for valid fonts."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create config with fonts
+        # create config with fonts
         downloader.save_config(sources=font_sources, config_name="test_fonts")
 
-        # Load again - should verify integrity and not re-download
+        # load again - should verify integrity and not re-download
         with patch.object(downloader, "_download_file") as mock_download:
             result_dir = downloader.from_config("test_fonts")  # noqa: F841
             mock_download.assert_not_called()
@@ -211,23 +221,23 @@ class TestFromConfig:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test that corrupted fonts are re-downloaded."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create config
+        # create config
         config_path = downloader.save_config(sources=font_sources, config_name="test_fonts")  # noqa: F841
 
-        # Corrupt one font file
+        # corrupt one font file
         fonts_dir = tmp_path.joinpath("test_fonts")
         first_font = fonts_dir.joinpath(font_sources[0].name)
         first_font.write_bytes(b"corrupted content")
 
-        # Load from config - should detect corruption and re-download
+        # load from config - should detect corruption and re-download
         result_dir = downloader.from_config("test_fonts")  # noqa: F841
 
-        # Verify font was re-downloaded (hash should match now)
+        # verify font was re-downloaded (hash should match now)
         assert first_font.exists()
 
     def test_from_config_missing_config_raises_error(
@@ -247,7 +257,7 @@ class TestFromConfig:
         """Test that JSONDecodeError is raised for invalid JSON."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create invalid JSON config
+        # create invalid JSON config
         config_path = downloader.configs_dir.joinpath("invalid.json")
         config_path.write_text("{ invalid json }")
 
@@ -262,12 +272,12 @@ class TestClearCache:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test clearing cache for a specific config."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create two configs
+        # create two configs
         downloader.save_config(sources=font_sources, config_name="fonts1")
         downloader.save_config(sources=font_sources, config_name="fonts2")
 
@@ -277,7 +287,7 @@ class TestClearCache:
         assert fonts1_dir.exists()
         assert fonts2_dir.exists()
 
-        # Clear only fonts1
+        # clear only fonts1
         downloader.clear_cache(config_name="fonts1")
 
         assert not fonts1_dir.exists()
@@ -287,12 +297,12 @@ class TestClearCache:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test clearing all fonts cache."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create multiple configs
+        # create multiple configs
         downloader.save_config(sources=font_sources, config_name="fonts1")
         downloader.save_config(sources=font_sources, config_name="fonts2")
 
@@ -301,14 +311,14 @@ class TestClearCache:
         config1 = downloader.configs_dir.joinpath("fonts1.json")
         config2 = downloader.configs_dir.joinpath("fonts2.json")
 
-        # Clear all fonts
+        # clear all fonts
         downloader.clear_cache()
 
-        # Fonts should be gone
+        # fonts should be gone
         assert not fonts1_dir.exists()
         assert not fonts2_dir.exists()
 
-        # Configs should still exist
+        # configs should still exist
         assert config1.exists()
         assert config2.exists()
 
@@ -316,38 +326,38 @@ class TestClearCache:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test clearing cache including config files."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create configs
+        # create configs
         downloader.save_config(sources=font_sources, config_name="fonts1")
         downloader.save_config(sources=font_sources, config_name="fonts2")
 
         fonts1_dir = tmp_path.joinpath("fonts1")
         config1 = downloader.configs_dir.joinpath("fonts1.json")
 
-        # Clear everything
+        # clear everything
         downloader.clear_cache(remove_configs=True)
 
-        # Everything should be gone
+        # everything should be gone
         assert not fonts1_dir.exists()
         assert not config1.exists()
 
-        # Configs dir should still exist (recreated)
+        # configs dir should still exist (recreated)
         assert downloader.configs_dir.exists()
 
     def test_clear_cache_specific_with_remove_config(
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test clearing specific config with its config file."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create two configs
+        # create two configs
         downloader.save_config(sources=font_sources, config_name="fonts1")
         downloader.save_config(sources=font_sources, config_name="fonts2")
 
@@ -356,7 +366,7 @@ class TestClearCache:
         config1 = downloader.configs_dir.joinpath("fonts1.json")
         config2 = downloader.configs_dir.joinpath("fonts2.json")
 
-        # Clear only fonts1 with config
+        # clear only fonts1 with config
         downloader.clear_cache(config_name="fonts1", remove_configs=True)
 
         # fonts1 and its config should be gone
@@ -374,7 +384,7 @@ class TestClearCache:
         """Test clearing cache for nonexistent config (should not raise error)."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Should not raise error
+        # should not raise error
         downloader.clear_cache(config_name="nonexistent")
 
 
@@ -393,31 +403,31 @@ class TestListConfigs:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test listing multiple configs."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create multiple configs
+        # create multiple configs
         downloader.save_config(sources=font_sources, config_name="fonts_a")
         downloader.save_config(sources=font_sources, config_name="fonts_b")
         downloader.save_config(sources=font_sources, config_name="fonts_c")
 
         configs = downloader.list_configs()
 
-        assert len(configs) == 3
-        assert configs == ["fonts_a", "fonts_b", "fonts_c"]  # Should be sorted
+        assert len(configs) == 3  # noqa: PLR2004
+        assert configs == ["fonts_a", "fonts_b", "fonts_c"]  # should be sorted
 
     def test_list_configs_sorted(
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test that configs are returned in sorted order."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create in random order
+        # create in random order
         downloader.save_config(sources=font_sources, config_name="zebra")
         downloader.save_config(sources=font_sources, config_name="alpha")
         downloader.save_config(sources=font_sources, config_name="beta")
@@ -434,7 +444,7 @@ class TestFromSources:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test from_sources creates config and returns fonts directory."""
         fonts_dir = ReproducibleFontDownload.from_sources(
@@ -446,11 +456,11 @@ class TestFromSources:
         assert fonts_dir.exists()
         assert fonts_dir == tmp_path.joinpath("test_fonts")
 
-        # Verify fonts exist
+        # verify fonts exist
         for source in font_sources:
             assert fonts_dir.joinpath(source.name).exists()
 
-        # Verify config exists
+        # verify config exists
         config_path = tmp_path.joinpath("configs").joinpath("test_fonts.json")
         assert config_path.exists()
 
@@ -458,7 +468,7 @@ class TestFromSources:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test that from_sources returns the correct fonts directory path."""
         result = ReproducibleFontDownload.from_sources(
@@ -487,7 +497,7 @@ class TestDownloadFile:
         with patch("requests.get") as mock_get:
             mock_response = Mock()
 
-            # Fix: Create proper headers mock
+            # create proper headers mock
             headers_mock = Mock()
             headers_mock.get = Mock(return_value="1024")
             mock_response.headers = headers_mock
@@ -498,7 +508,7 @@ class TestDownloadFile:
             mock_response.__exit__ = Mock(return_value=False)
             mock_get.return_value = mock_response
 
-            result = downloader._download_file(url=mock_fonts[0].url, dest_path=dest_path)
+            result = downloader._download_file(url=mock_fonts[0].url, dest_path=dest_path)  # noqa: SLF001
 
             assert result is True
             assert dest_path.exists()
@@ -514,7 +524,7 @@ class TestDownloadFile:
         dest_path = tmp_path.joinpath("test_font.ttf")
 
         with patch("requests.get", side_effect=requests.RequestException("Network error")):
-            result = downloader._download_file(url="https://example.com/font.ttf", dest_path=dest_path)
+            result = downloader._download_file(url="https://example.com/font.ttf", dest_path=dest_path)  # noqa: SLF001
 
         assert result is False
         assert not dest_path.exists()
@@ -528,11 +538,11 @@ class TestDownloadFile:
 
         dest_path = tmp_path.joinpath("test_font.ttf")
 
-        # Create a partial file
+        # create a partial file
         dest_path.write_bytes(b"partial data")
 
         with patch("requests.get", side_effect=requests.RequestException("Network error")):
-            result = downloader._download_file(url="https://example.com/font.ttf", dest_path=dest_path)
+            result = downloader._download_file(url="https://example.com/font.ttf", dest_path=dest_path)  # noqa: SLF001
 
         assert result is False
         assert not dest_path.exists()
@@ -552,7 +562,7 @@ class TestIntegrityVerification:
         font_path = tmp_path.joinpath(mock_fonts[0].name)
         font_path.write_bytes(f"mock-font-content-{mock_fonts[0].name}".encode())
 
-        result = downloader._verify_font_integrity(font_path=font_path, expected_sha256=mock_fonts[0].sha256)
+        result = downloader._verify_font_integrity(font_path=font_path, expected_sha256=mock_fonts[0].sha256)  # noqa: SLF001
 
         assert result is True
 
@@ -567,7 +577,7 @@ class TestIntegrityVerification:
         font_path = tmp_path.joinpath(mock_fonts[0].name)
         font_path.write_bytes(b"wrong content")
 
-        result = downloader._verify_font_integrity(font_path=font_path, expected_sha256=mock_fonts[0].sha256)
+        result = downloader._verify_font_integrity(font_path=font_path, expected_sha256=mock_fonts[0].sha256)  # noqa: SLF001
 
         assert result is False
 
@@ -580,7 +590,7 @@ class TestIntegrityVerification:
 
         font_path = tmp_path.joinpath("nonexistent.ttf")
 
-        result = downloader._verify_font_integrity(font_path=font_path, expected_sha256="dummy_hash")
+        result = downloader._verify_font_integrity(font_path=font_path, expected_sha256="dummy_hash")  # noqa: SLF001
 
         assert result is False
 
@@ -602,25 +612,25 @@ class TestEdgeCases:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test loading config that has no SHA256 field (backward compatibility)."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create config manually without SHA256
+        # create config manually without SHA256
         config_path = downloader.configs_dir.joinpath("no_sha.json")
         config_data = [
             {
                 "name": source.name,
                 "url": source.url,
-                # No sha256 field
+                # no sha256 field
             }
             for source in font_sources
         ]
         with config_path.open("w") as f:
             json.dump(config_data, f)
 
-        # Should still work (downloads fonts)
+        # should still work (downloads fonts)
         fonts_dir = downloader.from_config("no_sha")
 
         assert fonts_dir.exists()
@@ -631,12 +641,12 @@ class TestEdgeCases:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test that malformed config entries are skipped."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
 
-        # Create config with one malformed entry
+        # create config with one malformed entry
         config_path = downloader.configs_dir.joinpath("malformed.json")
         config_data = [
             {"name": font_sources[0].name, "url": font_sources[0].url},
@@ -646,7 +656,7 @@ class TestEdgeCases:
         with config_path.open("w") as f:
             json.dump(config_data, f)
 
-        # Should process valid entries and skip malformed
+        # should process valid entries and skip malformed
         fonts_dir = downloader.from_config("malformed")
 
         assert fonts_dir.joinpath(font_sources[0].name).exists()
@@ -656,7 +666,7 @@ class TestEdgeCases:
         self,
         tmp_path: pathlib.Path,
         font_sources: list[FontSource],
-        fake_download: None,
+        fake_download: None,  # noqa: ARG002
     ) -> None:
         """Test config names with special characters."""
         downloader = ReproducibleFontDownload(cache_dir=tmp_path)
@@ -665,8 +675,8 @@ class TestEdgeCases:
         config_path = downloader.save_config(sources=font_sources, config_name=config_name)
 
         assert config_path.exists()
-        assert config_path.name == f"{config_name}.json"  # Check full filename instead of stem
+        assert config_path.name == f"{config_name}.json"  # check full filename instead of stem
 
-        # Should be able to load it
+        # should be able to load it
         fonts_dir = downloader.from_config(config_name)
         assert fonts_dir.exists()

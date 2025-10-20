@@ -12,7 +12,7 @@ from font_download.tools import FontEntity, FontSource, ReproducibleFontDownload
 
 
 class ReproducibleFontDownload:
-    def __init__(self, cache_dir: str | pathlib.Path = ".cache/pixel_renderer/fonts"):
+    def __init__(self, cache_dir: str | pathlib.Path = ".cache/pixel_renderer/fonts") -> None:
         self.logger = logging.getLogger(__name__)
         self.cache_dir = self._create_cache_dir(path_to_dir=cache_dir)
         self.configs_dir = self._create_subdir_in_cache_dir("configs")
@@ -30,7 +30,7 @@ class ReproducibleFontDownload:
 
     def _download_file(self, url: str, dest_path: pathlib.Path) -> bool:
         """Download a file from URL to destination path."""
-        self.logger.debug(f"Downloading file from {url}")
+        self.logger.debug("Downloading file from %s", url)
 
         try:
             with requests.get(url, stream=True, timeout=30) as response:
@@ -45,13 +45,14 @@ class ReproducibleFontDownload:
                         if chunk:  # filter out keep-alive chunks
                             f.write(chunk)
 
-            self.logger.debug(f"Successfully downloaded file to {dest_path}")
-            return True
-        except requests.RequestException as e:
-            self.logger.error(f"Failed to download file from {url}: {e}")
+            self.logger.debug("Successfully downloaded file to %s", dest_path)
+        except requests.RequestException:
+            self.logger.exception("Failed to download file from %s", url)
             if dest_path.exists():
                 dest_path.unlink()
             return False
+        else:
+            return True
 
     def _download_font_parallel(self, source: FontSource, fonts_dir: pathlib.Path) -> FontEntity | None:
         """Download a single font (helper for parallel downloads)."""
@@ -59,9 +60,9 @@ class ReproducibleFontDownload:
 
         if self._download_file(url=source.url, dest_path=font_path):
             return FontEntity(name=source.name, url=source.url, file_path=font_path)
-        else:
-            self.logger.warning(f"Failed to download font: {source.name}")
-            return None
+
+        self.logger.warning("Failed to download font: %s", source.name)
+        return None
 
     def _verify_font_integrity(self, font_path: pathlib.Path, expected_sha256: str) -> bool:
         """Verify font file integrity using SHA256 hash."""
@@ -69,10 +70,13 @@ class ReproducibleFontDownload:
             actual_sha256 = ReproducibleFontDownloadUtils.compute_sha256(font_path)
             if actual_sha256 != expected_sha256:
                 self.logger.warning(
-                    f"SHA256 mismatch for {font_path.name}. Expected: {expected_sha256}, Got: {actual_sha256}"
+                    "SHA256 mismatch for %s. Expected: %s, Got: %s", font_path.name, expected_sha256, actual_sha256
                 )
                 return False
-            return True
+
+            else:  # noqa: RET505
+                self.logger.debug("SHA256 verified for %s", font_path.name)
+                return True
         except FileNotFoundError:
             return False
 
@@ -82,27 +86,31 @@ class ReproducibleFontDownload:
         try:
             with config_path.open("w", encoding="utf-8") as f:
                 json.dump(config_data, f, indent=4)
-            self.logger.info(f"Configuration saved to {config_path}")
-        except OSError as e:
-            self.logger.error(f"Failed to save configuration to {config_path}: {e}")
+            self.logger.info("Configuration saved to %s", config_path)
+        except OSError:
+            self.logger.exception("Failed to save configuration to %s", config_path)
             raise
 
     def _load_config_file(self, config_path: pathlib.Path) -> list[dict]:
         """Load configuration from JSON file."""
         if not config_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+            msg = f"Configuration file not found: {config_path}"
+            self.logger.error(msg)
+            raise FileNotFoundError(msg)
 
         try:
             with config_path.open("r", encoding="utf-8") as f:
                 config_data = json.load(f)
-            self.logger.debug(f"Loaded configuration from {config_path}")
+        except json.JSONDecodeError:
+            self.logger.exception("Invalid JSON in config file: %s", config_path)
+            raise
+        except OSError:
+            self.logger.exception("Failed to read config file: %s", config_path)
+            raise
+        else:
+            # only executes if no exception occurred
+            self.logger.debug("Loaded configuration from %s", config_path)
             return config_data
-        except json.JSONDecodeError as e:
-            self.logger.error(f"Failed to parse configuration file {config_path}: {e}")
-            raise
-        except OSError as e:
-            self.logger.error(f"Failed to read configuration file {config_path}: {e}")
-            raise
 
     def resolve_config_path(self, config_name_or_path: str | pathlib.Path) -> pathlib.Path:
         """Resolve config name or path to actual config file path."""
@@ -115,7 +123,7 @@ class ReproducibleFontDownload:
 
         # otherwise, look in the configs directory
         config_path = self.configs_dir.joinpath(config_name_or_path).with_suffix(".json")
-        return config_path
+        return config_path  # noqa: RET504
 
     def save_config(
         self,
@@ -148,7 +156,7 @@ class ReproducibleFontDownload:
 
         font_entities: list[FontEntity] = []
 
-        # Parallel downloading
+        # parallel downloading
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_source = {
                 executor.submit(self._download_font_parallel, source, fonts_dir): source for source in sources
@@ -160,16 +168,18 @@ class ReproducibleFontDownload:
                     font_entities.append(result)
 
         if not font_entities:
-            raise RuntimeError("No fonts were successfully downloaded")
+            msg = "No fonts were successfully downloaded"
+            raise RuntimeError(msg)
 
         self._save_config_file(config_path=config_path, font_entities=font_entities)
-        self.logger.info(f"Successfully saved {len(font_entities)} fonts to config: {config_name}")
+        self.logger.info("Successfully saved %d fonts to config: %s", len(font_entities), config_name)
 
         return config_path
 
     def from_config(  # noqa: C901
         self,
         config_name_or_path: str | pathlib.Path,
+        *,
         force_download: bool = False,
         max_workers: int = 5,
     ) -> pathlib.Path:
@@ -194,11 +204,11 @@ class ReproducibleFontDownload:
         config_path = self.resolve_config_path(config_name_or_path)
         config_data = self._load_config_file(config_path)
 
-        # Extract config name from the file name
+        # extract config name from the file name
         config_name = config_path.stem
         fonts_dir = self._create_subdir_in_cache_dir(subdir_name=config_name)
 
-        # Separate fonts into those needing download and those already cached
+        # separate fonts into those needing download and those already cached
         fonts_to_download = []
         fonts_already_cached = []
 
@@ -212,22 +222,22 @@ class ReproducibleFontDownload:
                 should_download = force_download or not font_path.exists()
 
                 # verify integrity if file exists and we're not forcing download
-                if not should_download and expected_sha256:
+                if not should_download and expected_sha256:  # noqa: SIM102
                     if not self._verify_font_integrity(font_path, expected_sha256):
-                        self.logger.warning(f"Font {font_name} failed integrity check, re-downloading")
+                        self.logger.warning("Font %s failed integrity check, re-downloading", font_name)
                         should_download = True
 
                 if should_download:
                     fonts_to_download.append(item)
                 else:
                     fonts_already_cached.append(font_name)
-                    self.logger.debug(f"Font {font_name} already exists and is valid")
+                    self.logger.debug("Font %s already exists and is valid", font_name)
 
-            except (KeyError, TypeError) as e:
-                self.logger.error(f"Invalid font entry in config: {e}")
+            except (KeyError, TypeError):  # noqa: PERF203
+                self.logger.exception("Invalid font entry in config")
                 continue
 
-        # Download fonts in parallel
+        # download fonts in parallel
         fonts_downloaded = 0
         if fonts_to_download:
 
@@ -237,17 +247,17 @@ class ReproducibleFontDownload:
                 expected_sha256 = item.get("sha256", "")
                 font_path = fonts_dir.joinpath(font_name)
 
-                self.logger.info(f"Downloading font: {font_name}")
+                self.logger.debug("Downloading font: %s", font_name)
                 if self._download_file(url=font_url, dest_path=font_path):
-                    # Verify downloaded file if hash is provided
-                    if expected_sha256:
+                    # verify downloaded file if hash is provided
+                    if expected_sha256:  # noqa: SIM102
                         if not self._verify_font_integrity(font_path, expected_sha256):
-                            self.logger.error(f"Downloaded font {font_name} failed integrity check")
+                            self.logger.error("Downloaded font %s failed integrity check", font_name)
                             font_path.unlink()
                             return False
                     return True
-                else:
-                    self.logger.error(f"Failed to download font: {font_name}")
+                else:  # noqa: RET505
+                    self.logger.error("Failed to download font: %s", font_name)
                     return False
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -258,7 +268,7 @@ class ReproducibleFontDownload:
                         fonts_downloaded += 1
 
         fonts_processed = len(fonts_already_cached) + fonts_downloaded
-        self.logger.info(f"Fonts ready in {fonts_dir} ({fonts_processed} total, {fonts_downloaded} downloaded)")
+        self.logger.info("Fonts ready in %s (%d total, %d downloaded)", fonts_dir, fonts_processed, fonts_downloaded)
         return fonts_dir
 
     @classmethod
@@ -289,6 +299,7 @@ class ReproducibleFontDownload:
     def clear_cache(
         self,
         config_name: str | None = None,
+        *,
         remove_configs: bool = False,
     ) -> None:
         """
@@ -306,23 +317,23 @@ class ReproducibleFontDownload:
             >>> downloader.clear_cache(remove_configs=True)  # Clear everything
         """
         if config_name:
-            # Clear specific config's fonts
+            # clear specific config's fonts
             fonts_dir = self.cache_dir.joinpath(config_name)
             if fonts_dir.exists():
                 shutil.rmtree(fonts_dir)
-                self.logger.info(f"Cleared fonts for config: {config_name}")
+                self.logger.info("Cleared fonts for config: %s", config_name)
 
             if remove_configs:
                 config_path = self.configs_dir.joinpath(config_name).with_suffix(".json")
                 if config_path.exists():
                     config_path.unlink()
-                    self.logger.info(f"Removed config file: {config_name}.json")
+                    self.logger.info("Removed config file: %s.json", config_name)
         else:
-            # Clear all fonts (but preserve configs directory structure)
+            # clear all fonts (but preserve configs directory structure)
             for item in self.cache_dir.iterdir():
                 if item.is_dir() and item.name != "configs":
                     shutil.rmtree(item)
-                    self.logger.info(f"Cleared fonts directory: {item.name}")
+                    self.logger.info("Cleared all cached fonts: %s", item.name)
 
             if remove_configs and self.configs_dir.exists():
                 shutil.rmtree(self.configs_dir)

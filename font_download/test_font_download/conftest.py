@@ -20,15 +20,15 @@ def font_sources() -> list[FontSource]:
 def fake_download(monkeypatch: pytest.MonkeyPatch, mock_fonts: list[FontEntity]) -> None:
     """Mock requests.get to simulate font downloads."""
 
-    def mock_get(url: str, stream: bool = False, timeout: int = 30):  # noqa: ARG001
+    def mock_get(url: str, *, stream: bool = False, timeout: int = 30) -> Mock:  # noqa: ARG001
         mock_response = Mock()
 
-        # Create a proper headers mock that returns strings
+        # create a proper headers mock that returns strings
         headers_mock = Mock()
         headers_mock.get = Mock(return_value="1024")
         mock_response.headers = headers_mock
 
-        # Simulate font content based on URL
+        # simulate font content based on URL
         for font in mock_fonts:
             if font.url == url:
                 content = f"mock-font-content-{font.name}".encode()

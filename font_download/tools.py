@@ -1,5 +1,3 @@
-# Copyright 2025- Pavel Stepachev
-# SPDX-License-Identifier: Apache-2.0
 import hashlib
 import pathlib
 from collections import defaultdict

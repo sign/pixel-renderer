@@ -9,10 +9,11 @@ authors = [
 readme = "README.md"
 dependencies = [
     "numpy",
-    "Pillow", # To create Images from arrays
+    "Pillow",         # To create Images from arrays
     "utf8-tokenizer", # For visualization of control tokens / whitespace
-    "signwriting", # To render SignWriting images
-    "lxml", # for XML parsing in fontconfig TODO remove once https://github.com/sign/WeLT/issues/24
+    "signwriting",    # To render SignWriting images
+    "lxml",           # for XML parsing in fontconfig TODO remove once https://github.com/sign/WeLT/issues/24
+    "requests",       # for font downloading
 ]
 
 [project.optional-dependencies]
@@ -27,6 +28,7 @@ dev = [
 packages = [
     "pixel_renderer",
     "font_configurator", # TODO: extract to separate package https://github.com/sign/WeLT/issues/24
+    "font_download",
 ]
 
 [tool.ruff]
@@ -34,23 +36,19 @@ line-length = 120
 
 [tool.ruff.lint]
 select = [
-    "E", # pycodestyle errors
-    "W", # pycodestyle warnings
-    "F", # pyflakes
-    "C90", # mccabe complexity
-    "I", # isort
-    "N", # pep8-naming
-    "UP", # pyupgrade
-    "B", # flake8-bugbear
-    "PT", # flake8-pytest-style
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "C90",  # mccabe complexity
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "PT",   # flake8-pytest-style
     "W605", # invalid escape sequence
-    "BLE", # flake8-blind-except
+    "BLE",  # flake8-blind-except
 ]
 
 [tool.pytest.ini_options]
 addopts = "-v"
-testpaths = [
-    "tests",
-    "pixel_renderer",
-    "font_configurator",
-]
+testpaths = ["tests", "pixel_renderer", "font_configurator", "font_download"]

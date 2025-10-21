@@ -29,20 +29,17 @@ def render_signwriting(text: str, block_size: int = 16) -> np.ndarray:
 
 
 @cache
-def cached_font_description(font_name: str, dpi: int, font_size: int) -> Pango.FontDescription:
-    # Scale font size by DPI
-    scaled_font_size = (dpi / 72) * font_size
-    return Pango.font_description_from_string(f"{font_name} {scaled_font_size}px")
+def cached_font_description(font_name: str, font_size: int) -> Pango.FontDescription:
+    return Pango.font_description_from_string(f"{font_name} {font_size}px")
 
 
-def render_text(text: str, block_size: int = 16, dpi: int = 120, font_size: int = 12) -> np.ndarray:
+def render_text(text: str, block_size: int = 16, font_size: int = 12) -> np.ndarray:
     """
     Renders text in black on white background using PangoCairo.
 
     Args:
         text (str): The text to render on a single line
         block_size (int): Height of each line in pixels, and width scale (default: 32)
-        dpi (int): DPI resolution (default: 120)
         font_size (int): Font size (default: 12)
 
     Returns:
@@ -63,7 +60,7 @@ def render_text(text: str, block_size: int = 16, dpi: int = 120, font_size: int 
             raise RuntimeError("Pango/Cairo not properly installed. See https://github.com/sign/WeLT/issues/31") from e
 
     # Set font
-    font_desc = cached_font_description("sans", dpi, font_size)
+    font_desc = cached_font_description("sans", font_size)
     layout.set_font_description(font_desc)
 
     # Measure all texts to find maximum width
@@ -103,23 +100,6 @@ def render_text(text: str, block_size: int = 16, dpi: int = 120, font_size: int 
     return img_array.copy()
 
 
-def render_text_image(text: str, block_size: int = 16, dpi: int = 120, font_size: int = 12) -> Image.Image:
-    img_array = render_text(text, block_size=block_size, dpi=dpi, font_size=font_size)
-    img = Image.fromarray(img_array)
-    img.info["dpi"] = (dpi, dpi)
-    return img
-
-
-def main():
-    # Example: render mixed text with emojis and newlines
-    text = "hello🤗\r\n\x02 "
-    image = render_text_image(text, block_size=16, dpi=120, font_size=12)
-
-    # Save the example
-    image.save("hello_example.png")
-    print(f"Rendered {text} and saved as 'hello_example.png'")
-    print(f"Image size: {image.size}")
-
-
-if __name__ == "__main__":
-    main()
+def render_text_image(text: str, block_size: int = 16, font_size: int = 12) -> Image.Image:
+    img_array = render_text(text, block_size=block_size, font_size=font_size)
+    return Image.fromarray(img_array)

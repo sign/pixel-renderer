@@ -7,13 +7,17 @@ authors = [
     { name = "Amit Moryossef", email = "amit@sign.mt" },
 ]
 readme = "README.md"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
-    "Pillow",         # To create Images from arrays
+    "Pillow", # To create Images from arrays
     "utf8-tokenizer", # For visualization of control tokens / whitespace
-    "signwriting",    # To render SignWriting images
-    "lxml",           # for XML parsing in fontconfig TODO remove once https://github.com/sign/WeLT/issues/24
-    "requests",       # for font downloading
+    "lxml", # for XML parsing in fontconfig TODO remove once https://github.com/sign/WeLT/issues/24
+    "requests", # for font downloading
+    # Rendering Dependencies
+    "pycairo", # To render images using Cairo
+    "PyGObject<3.52", # Use PyGObject < 3.52 which supports girepository-1.0
+    "signwriting", # To render SignWriting images
 ]
 
 [project.optional-dependencies]
@@ -36,17 +40,17 @@ line-length = 120
 
 [tool.ruff.lint]
 select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "C90",  # mccabe complexity
-    "I",    # isort
-    "N",    # pep8-naming
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "PT",   # flake8-pytest-style
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "C90", # mccabe complexity
+    "I", # isort
+    "N", # pep8-naming
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "PT", # flake8-pytest-style
     "W605", # invalid escape sequence
-    "BLE",  # flake8-blind-except
+    "BLE", # flake8-blind-except
 ]
 
 [tool.pytest.ini_options]

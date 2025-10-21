@@ -9,14 +9,17 @@ Install dependencies:
 ```shell
 conda create -n pixel python=3.12 -y
 conda activate pixel
-conda install -c conda-forge pycairo pygobject manimpango -y
-pip install ".[dev]"
+pip install ".[dev,pangocairo]"
 ```
+
+> [!TIP]
+> Having trouble installing `pycairo` and `pygobject`? 
+> See [these instructions](https://pygobject.readthedocs.io/en/latest/getting_started.html#installing-pygobject).
 
 Install:
 
 ```bash
-pip install pixel-renderer
+pip install "pixel-renderer[pangocairo]"
 ```
 
 Render text as an image (array):

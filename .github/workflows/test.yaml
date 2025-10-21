@@ -30,7 +30,7 @@ jobs:
           activate-environment: true
 
       - name: Install dependencies
-        run: uv pip install ".[dev]"
+        run: uv pip install ".[dev,pangocairo]"
 
       - name: Lint code
         run: uv run pytest -n auto --dist loadscope

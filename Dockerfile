@@ -9,7 +9,7 @@ RUN apt-get install -y libgirepository-1.0-1 libcairo2 gir1.2-pango-1.0 pkg-conf
 
 COPY . /pixel-renderer
 WORKDIR /pixel-renderer
-RUN pip install .
+RUN pip install ".[pangocairo]"
 
 CMD ["python", "-c", "from pixel_renderer import render_text; print(render_text('test', 16, 12).shape); print('✅')"]
 

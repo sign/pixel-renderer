@@ -14,9 +14,6 @@ dependencies = [
     "utf8-tokenizer", # For visualization of control tokens / whitespace
     "lxml", # for XML parsing in fontconfig TODO remove once https://github.com/sign/WeLT/issues/24
     "requests", # for font downloading
-    # Rendering Dependencies
-    "pycairo", # To render images using Cairo
-    "PyGObject<3.52", # Use PyGObject < 3.52 which supports girepository-1.0
     "signwriting", # To render SignWriting images
 ]
 
@@ -27,6 +24,10 @@ dev = [
     "pytest-xdist", # For parallel test execution
 ]
 
+pangocairo = [
+    "pycairo", # To render images using Cairo
+    "PyGObject<3.52", # Use PyGObject < 3.52 which supports girepository-1.0
+]
 
 [tool.setuptools]
 packages = [

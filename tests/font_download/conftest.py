@@ -1,8 +1,7 @@
 """Shared fixtures for font_download tests."""
 
 import pathlib
-import tempfile
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -44,4 +43,4 @@ def mock_processor_setup(mock_download_setup):
     """Mock both download and FontConfigurator for processor tests."""
     # Mock FontConfigurator - it's not imported in processor.py anymore based on user's changes
     # So we don't need to mock it
-    yield mock_download_setup
+    return mock_download_setup

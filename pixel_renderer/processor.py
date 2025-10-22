@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-
 from transformers import ProcessorMixin
 
 from font_configurator.font_configurator import FontConfigurator
 from font_configurator.fontconfig_managers import FontconfigMode
-from font_download import FontConfig, FontConfig
-from pixel_renderer.renderer import render_text_image, render_text
+from font_download import FontConfig
+from pixel_renderer.renderer import render_text, render_text_image
 
 
 class PixelRendererProcessor(ProcessorMixin):

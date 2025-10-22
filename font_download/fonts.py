@@ -1,9 +1,9 @@
+import hashlib
 from collections import defaultdict
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from urllib.parse import unquote, urlparse
 
-import hashlib
-from pathlib import Path
 
 def compute_file_sha256(file_path: str | Path) -> str:
     with open(file_path, 'rb', buffering=0) as f:

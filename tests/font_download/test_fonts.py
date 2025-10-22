@@ -5,7 +5,7 @@ import pathlib
 
 import pytest
 
-from font_download.fonts import FontSource, FontEntity, combine_fonts, compute_file_sha256
+from font_download.fonts import FontEntity, FontSource, combine_fonts, compute_file_sha256
 
 
 class TestComputeFileSha256:

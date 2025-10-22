@@ -2,8 +2,6 @@
 
 import json
 
-import pytest
-
 from font_download.download_fonts import _compute_sources_hash, download_fonts
 from font_download.fonts import FontSource
 

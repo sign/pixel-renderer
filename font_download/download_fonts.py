@@ -8,7 +8,7 @@ from urllib.request import urlretrieve
 
 from platformdirs import user_cache_dir
 
-from font_download.fonts import FontsSources, FontEntity
+from font_download.fonts import FontEntity, FontsSources
 
 FONT_DOWNLOAD_CACHE_DIR = Path(user_cache_dir("font_download"))
 

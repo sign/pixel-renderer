@@ -19,7 +19,7 @@ from font_configurator.fontconfig_templates import (
     DARWIN_FONTCONFIG_REMOVE_SYSTEM_FONTS_PATTERNS,
     LINUX_FONTCONFIG_REMOVE_SYSTEM_FONTS_PATTERNS,
 )
-from font_configurator.test_font.conftest import (
+from tests.font_configurator.test_font.conftest import (
     DARWIN_ONLY_VALID_TEST_CASES,
     INVALID_EXTENSIONS,
     INVALID_FONTCONFIG_TEST_CASES,

@@ -1,27 +1,13 @@
-import hashlib
-import pathlib
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from urllib.parse import unquote, urlparse
 
+import hashlib
+from pathlib import Path
 
-class ReproducibleFontDownloadUtils:
-    @staticmethod
-    def compute_sha256(file_path: str | pathlib.Path) -> str:
-        if not isinstance(file_path, pathlib.Path):
-            file_path = pathlib.Path(file_path)
-
-        if not file_path.is_file():
-            msg = f"File {file_path} does not exist or is not a file."
-            raise FileNotFoundError(msg)
-
-        hash_sha256 = hashlib.sha256()
-        with file_path.open("rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_sha256.update(chunk)
-
-        return hash_sha256.hexdigest()
-
+def compute_file_sha256(file_path: str | Path) -> str:
+    with open(file_path, 'rb', buffering=0) as f:
+        return hashlib.file_digest(f, 'sha256').hexdigest()
 
 @dataclass(slots=True)
 class FontSource:
@@ -35,12 +21,15 @@ class FontSource:
 
     def prepare_name(self) -> str:
         parsed_url = urlparse(self.url)
-        self.name = pathlib.Path(unquote(parsed_url.path)).name
+        self.name = Path(unquote(parsed_url.path)).name
         return self.name
 
     def to_dict(self) -> dict:
         return asdict(self)
 
+FontSourceDict = dict[str, str]
+
+FontsSources = list[FontSource] | list[FontSourceDict]
 
 @dataclass(slots=True)
 class FontEntity:
@@ -48,20 +37,17 @@ class FontEntity:
 
     name: str
     url: str
+    file_path: Path
 
-    file_path: pathlib.Path
     sha256: str = ""
 
     def __post_init__(self) -> None:
-        if not isinstance(self.file_path, pathlib.Path):
-            self.file_path = pathlib.Path(self.file_path)
+        if not isinstance(self.file_path, Path):
+            self.file_path = Path(self.file_path)
 
-        self.sha256 = ReproducibleFontDownloadUtils.compute_sha256(file_path=self.file_path)
+        self.sha256 = compute_file_sha256(file_path=self.file_path)
 
     def to_dict(self) -> dict:
-        return asdict(self)
-
-    def to_config_format_dict(self) -> dict:
         return {
             "name": self.name,
             "url": self.url,
@@ -69,8 +55,8 @@ class FontEntity:
         }
 
 
-def _check_no_duplicates(*font_lists: list[FontSource]) -> list[FontSource]:
-    """Validate that there are no duplicate fonts by URL or name.
+def combine_fonts(*font_lists: FontsSources) -> FontsSources:
+    """Combine fount sources, while validating that there are no duplicate fonts by URL or name.
 
     Args:
         *font_lists: Variable number of font source lists to check

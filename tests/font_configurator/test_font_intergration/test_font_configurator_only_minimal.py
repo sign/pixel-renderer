@@ -12,7 +12,7 @@ import pytest
 
 from font_configurator.font_configurator import FontConfigurator
 from font_configurator.fontconfig_managers import FontconfigMode
-from font_configurator.test_font_intergration.conftest import (
+from tests.font_configurator.test_font_intergration.conftest import (
     FONT_CONFIGURATOR_ONLY_MINIMAL_TEST_CASES,
     FontConfiguratorOnlyMinimalTestCase,
 )

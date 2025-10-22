@@ -1,4 +1,4 @@
-from font_download.tools import FontSource, _check_no_duplicates
+from font_download.fonts import FontSource, combine_fonts
 
 _HONK = [
     FontSource(
@@ -7,6 +7,6 @@ _HONK = [
     ),
 ]
 
-FONTS_HONK = _check_no_duplicates(
+FONTS_HONK = combine_fonts(
     _HONK,
 )

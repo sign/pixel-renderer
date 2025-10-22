@@ -1,4 +1,4 @@
-from font_download.tools import FontSource, _check_no_duplicates
+from font_download.fonts import FontSource, combine_fonts
 
 _COLOR_EMOJI_NOTO_SANS = [
     FontSource(
@@ -676,7 +676,7 @@ _OTHER_STYLES_NOTO_SANS = [
     ),
 ]
 
-FONTS_NOTO_SANS = _check_no_duplicates(
+FONTS_NOTO_SANS = combine_fonts(
     _COMMON_NOTO_SANS,
     _LESS_COMMON_NOTO_SANS,
     _RARE_NOTO_SANS,
@@ -685,7 +685,7 @@ FONTS_NOTO_SANS = _check_no_duplicates(
     _SIGNWRITING_NOTO_SANS,
 )
 
-FONTS_NOTO_SANS_BW = _check_no_duplicates(
+FONTS_NOTO_SANS_BW = combine_fonts(
     _COMMON_NOTO_SANS,
     _LESS_COMMON_NOTO_SANS,
     _RARE_NOTO_SANS,
@@ -694,6 +694,6 @@ FONTS_NOTO_SANS_BW = _check_no_duplicates(
     _SIGNWRITING_NOTO_SANS,
 )
 
-FONTS_NOTO_SANS_MINIMAL = _check_no_duplicates(
+FONTS_NOTO_SANS_MINIMAL = combine_fonts(
     _COMMON_NOTO_SANS,
 )

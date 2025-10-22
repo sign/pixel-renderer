@@ -1,6 +1,3 @@
-# Copyright 2025- Pavel Stepachev
-# SPDX-License-Identifier: Apache-2.0
-
 from __future__ import annotations
 
 import ctypes
@@ -13,6 +10,7 @@ from ctypes.util import find_library
 from typing import ClassVar
 
 import gi
+from platformdirs import user_cache_dir
 
 from font_configurator.fontconfig_managers import (
     BaseFontconfigManager,
@@ -26,6 +24,8 @@ gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
 from gi.repository import Pango, PangoCairo  # type: ignore  # noqa: E402, F401
 
+
+FONTCONFIG_CACHE_DIR = pathlib.Path(user_cache_dir("font_configurator"))
 
 class FontConfigurator:
     manager_map: ClassVar[dict[SupportedPlatforms, type[BaseFontconfigManager]]] = {
@@ -328,7 +328,7 @@ class FontConfigurator:
         mode: FontconfigMode,
         fontconfig_source_path: pathlib.Path | str | None = None,
         font_dir: pathlib.Path | str | None = None,
-        fontconfig_destination_dir: pathlib.Path | str | None = "output_fontconfig",
+        fontconfig_destination_dir: pathlib.Path | str | None = FONTCONFIG_CACHE_DIR,
         *,
         force_reinitialize: bool = True,
     ) -> pathlib.Path:

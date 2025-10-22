@@ -27,14 +27,24 @@ Render text as an image (array):
 ```python
 from pixel_renderer.renderer import render_text
 
-render_text(text="test", block_size=16, dpi=120, font_size=12)
+render_text(text="test", block_size=16, font_size=12)
 ```
 
-> [!CAUTION]
-> Our text [renderer](./pixel_renderer/renderer.py) relies on the computer's font rendering capabilities.
-> Rendering on different systems may yield different results (e.g. emoji).
-> It is a work in progress to create a more robust renderer, decoupled from the system's font rendering,
-> for better consistency across platforms and easier reproducibility.
+For better consistency across platforms and easier reproducibility, we need to specify the exact fonts.
+
+
+```python
+from font_download import FontConfig
+from font_download.example_fonts.noto_sans import FONTS_NOTO_SANS
+from pixel_renderer import PixelRendererProcessor
+
+font_config = FontConfig(sources=FONTS_NOTO_SANS)
+pixel_processor = PixelRendererProcessor(font=font_config)
+
+pixel_processor.render_text_image("hello!").save("demos_output/hello.png")
+
+pixel_processor.save_pretrained("demos_output/processor")
+```
 
 ## Cite
 

@@ -1,6 +1,6 @@
 from transformers import AutoConfig, PretrainedConfig
 
-from font_download import download_fonts
+from font_download.download_fonts import download_fonts
 from font_download.fonts import FontSource, FontsSources
 
 

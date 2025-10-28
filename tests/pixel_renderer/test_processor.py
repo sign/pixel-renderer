@@ -4,6 +4,7 @@ import tempfile
 
 import numpy as np
 import pytest
+from transformers import ProcessorMixin
 
 from font_download import FontConfig
 from font_download.example_fonts.noto_sans import FONTS_NOTO_SANS_MINIMAL
@@ -136,3 +137,24 @@ class TestPixelRendererProcessor:
 
         # Longer text should have larger width
         assert long.shape[1] > short.shape[1]
+
+    def test_processor_can_be_used_by_others(self):
+        class OtherProcessor(ProcessorMixin):
+            name = "other-processor"
+
+            attributes = ["renderer"]
+            renderer_class = "PixelRendererProcessor"
+
+            def __init__(self, renderer: PixelRendererProcessor):
+                super().__init__(renderer=renderer)
+
+        font = FontConfig(sources=FONTS_NOTO_SANS_MINIMAL)
+        renderer = PixelRendererProcessor(font=font)
+        processor = OtherProcessor(renderer)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Save processor
+            processor.save_pretrained(save_directory=temp_dir, push_to_hub=False)
+            # Load processor
+            new_processor = OtherProcessor.from_pretrained(temp_dir)
+            assert new_processor.renderer.font is not None

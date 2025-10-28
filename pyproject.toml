@@ -35,6 +35,7 @@ packages = [
     "pixel_renderer",
     "font_configurator", # TODO: extract to separate package https://github.com/sign/WeLT/issues/24
     "font_download",
+    "font_download.example_fonts"
 ]
 
 [tool.ruff]

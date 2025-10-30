@@ -1,2 +1,2 @@
-from .processor import PixelRendererProcessor  # noqa: F401
-from .renderer import *  # noqa: F403
+from pixel_renderer.processor import PixelRendererProcessor  # noqa: F401
+from pixel_renderer.renderer import *  # noqa: F403

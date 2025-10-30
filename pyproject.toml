@@ -16,6 +16,7 @@ dependencies = [
     "requests", # for font downloading
     "signwriting", # To render SignWriting images
     "platformdirs", # To manage cache directories
+    "torchvision", # Required for `AutoVideoProcessor`. TOOD remove once https://github.com/huggingface/transformers/issues/41816
 ]
 
 [project.optional-dependencies]

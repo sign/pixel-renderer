@@ -72,8 +72,10 @@ def download_fonts(sources: FontsSources, max_workers: int | None = None) -> Pat
 
         # Create symlink in config dir
         symlink_path = config_dir / source.name
-        if not symlink_path.exists():
-            symlink_path.symlink_to(font_path)
+        # Remove existing symlink if it exists (handles broken symlinks)
+        if symlink_path.is_symlink() or symlink_path.exists():
+            symlink_path.unlink(missing_ok=True)
+        symlink_path.symlink_to(font_path)
 
         return FontEntity(name=source.name, url=source.url, file_path=font_path)
 

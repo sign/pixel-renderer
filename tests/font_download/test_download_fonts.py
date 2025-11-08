@@ -174,3 +174,70 @@ class TestDownloadFonts:
 
         sources_json = json.loads((config_dir / "sources.json").read_text())
         assert len(sources_json) == 3
+
+    def test_recreates_symlink_if_exists(self, mock_download_setup, font_sources):
+        """Test that existing symlinks are handled correctly.
+
+        This test simulates the scenario where symlinks exist but sources.json
+        doesn't (e.g., from a partial/failed previous run).
+        """
+        from font_download.download_fonts import FONT_DOWNLOAD_CACHE_DIR, _compute_sources_hash
+
+        # First, create the fonts in cache
+        fonts_cache = FONT_DOWNLOAD_CACHE_DIR / "fonts"
+        fonts_cache.mkdir(parents=True, exist_ok=True)
+        font1_cache = fonts_cache / "font1.ttf"
+        font2_cache = fonts_cache / "font2.ttf"
+        font1_cache.write_bytes(b"font1-data")
+        font2_cache.write_bytes(b"font2-data")
+
+        # Create config dir with symlinks but no sources.json
+        config_hash = _compute_sources_hash(font_sources)
+        config_dir = FONT_DOWNLOAD_CACHE_DIR / "config" / config_hash
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create existing symlinks
+        symlink1 = config_dir / "font1.ttf"
+        symlink2 = config_dir / "font2.ttf"
+        symlink1.symlink_to(font1_cache)
+        symlink2.symlink_to(font2_cache)
+
+        # Now try to download fonts - this should not raise FileExistsError
+        result_config_dir = download_fonts(font_sources)
+
+        # Should succeed and create sources.json
+        assert result_config_dir == config_dir
+        assert (config_dir / "sources.json").exists()
+        assert (config_dir / "font1.ttf").exists()
+        assert (config_dir / "font2.ttf").exists()
+
+    def test_handles_broken_symlink(self, mock_download_setup, font_sources):
+        """Test that broken symlinks are replaced.
+
+        This test simulates the scenario where a symlink exists but is broken
+        (points to a non-existent file).
+        """
+        from font_download.download_fonts import FONT_DOWNLOAD_CACHE_DIR, _compute_sources_hash
+
+        # Create config dir with a broken symlink
+        config_hash = _compute_sources_hash(font_sources)
+        config_dir = FONT_DOWNLOAD_CACHE_DIR / "config" / config_hash
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create a broken symlink (pointing to non-existent file)
+        symlink1 = config_dir / "font1.ttf"
+        nonexistent = FONT_DOWNLOAD_CACHE_DIR / "fonts" / "nonexistent.ttf"
+        symlink1.symlink_to(nonexistent)
+
+        # Verify symlink exists but is broken
+        assert symlink1.is_symlink()
+        assert not symlink1.exists()  # exists() follows symlinks, so broken link returns False
+
+        # Now try to download fonts - this should recreate the symlink
+        result_config_dir = download_fonts(font_sources)
+
+        # Should succeed and create valid symlink
+        assert result_config_dir == config_dir
+        assert (config_dir / "sources.json").exists()
+        assert (config_dir / "font1.ttf").exists()  # Now it should exist and be valid
+        assert (config_dir / "font1.ttf").is_symlink()

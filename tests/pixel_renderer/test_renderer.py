@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import torch
 
-from pixel_renderer import render_text_image
+from pixel_renderer import render_text_image, render_text
 
 
 class TestRenderer(unittest.TestCase):
@@ -110,6 +110,14 @@ class TestRenderer(unittest.TestCase):
 
         assert has_black_pixels, "Rendered signwriting should contain black pixels"
 
+    def test_render_text_has_no_negative_indexes(self):
+        arr = render_text("hello")
+
+        # basic sanity
+        assert isinstance(arr, np.ndarray), f"expected ndarray-ish, got {type(arr)}"
+
+        # no negative strides (torch.from_numpy would accept)
+        assert not np.any(np.array(arr.strides) < 0), f"negative stride found: {arr.strides}"
 
 if __name__ == "__main__":
     unittest.main()

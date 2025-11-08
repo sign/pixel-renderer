@@ -95,9 +95,8 @@ def render_text(text: str, block_size: int = 16, font_size: int = 12) -> np.ndar
     # Extract image data as numpy array
     data = surface.get_data()
     img_array = np.frombuffer(data, dtype=np.uint8).reshape((line_height, width, 4))
-    img_array = img_array[:, :, 2::-1]  # Remove alpha channel + convert BGR→RGB
-
-    return img_array.copy()
+    img_array = img_array[:, :, [2, 1, 0]]  # Remove alpha channel + convert BGR→RGB
+    return img_array
 
 
 def render_text_image(text: str, block_size: int = 16, font_size: int = 12) -> Image.Image:

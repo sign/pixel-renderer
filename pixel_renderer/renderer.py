@@ -25,7 +25,8 @@ def render_signwriting(text: str, block_size: int = 16) -> np.ndarray:
     new_image = Image.new("RGB", (width, height), color=(255, 255, 255))
     padding = (width - image.width) // 2, (height - image.height) // 2
     new_image.paste(image, padding, image)
-    return np.array(new_image)
+    # Ensure the array is contiguous to avoid PIL misinterpreting dimensions
+    return np.ascontiguousarray(new_image)
 
 
 @cache

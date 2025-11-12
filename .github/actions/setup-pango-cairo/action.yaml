@@ -21,6 +21,16 @@ runs:
         echo "hash=$(echo -n "$pkgs" | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
         echo "cache_version=1" >> $GITHUB_OUTPUT
 
+    - name: Setup apt
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo chown -R $USER:$USER /var/cache/apt/archives
+
+        echo 'Acquire::GzipIndexes "true";' | sudo tee /etc/apt/apt.conf.d/gzip
+        echo 'Acquire::http::Pipeline-Depth "5";' | sudo tee -a /etc/apt/apt.conf.d/99parallel
+        echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' | sudo tee -a /etc/apt/apt.conf.d/99keep-debs
+
     - name: Cache apt
       if: runner.os == 'Linux'
       uses: actions/cache@v4

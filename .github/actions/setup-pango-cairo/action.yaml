@@ -1,0 +1,39 @@
+name: 'Setup PangoCairo'
+
+description: 'Install rendering dependencies with apt caching'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check runner OS
+      if: runner.os != 'Linux'
+      shell: bash
+      run: |
+        echo "::error::This action does not yet support ${{ runner.os }}. Only Linux is currently supported."
+        exit 1
+
+    - name: Set apt packages hash
+      id: apt-pkgs
+      shell: bash
+      run: |
+        pkgs="libgirepository-1.0-1 libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository1.0-dev"
+        echo "pkgs=$pkgs" >> $GITHUB_OUTPUT
+        echo "hash=$(echo -n "$pkgs" | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+        echo "cache_version=1" >> $GITHUB_OUTPUT
+
+    - name: Cache apt
+      if: runner.os == 'Linux'
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives/
+        key: ${{ runner.os }}-apt-${{ steps.apt-pkgs.outputs.hash }}-${{ steps.apt-pkgs.outputs.cache_version }}
+
+    - name: Install rendering system dependencies
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo sed -i 's|http://|https://|g' /etc/apt/sources.list{,.d/*.list,.d/*.sources} 2>/dev/null || true
+        sudo apt -qq update
+        sudo apt-get -y --allow-unauthenticated --no-install-recommends install ${{ steps.apt-pkgs.outputs.pkgs }}
+        sudo chown -R $USER:$USER /var/cache/apt/archives/
+

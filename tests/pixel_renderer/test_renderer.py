@@ -3,110 +3,86 @@ import unittest
 import numpy as np
 import torch
 
-from pixel_renderer import render_text, render_text_image
+from pixel_renderer import render_text
 
 
 class TestRenderer(unittest.TestCase):
     def test_single_text_has_black_pixels(self):
         """Test that rendering a single text produces black pixels in the image."""
         text = "Hello World"
-        image = render_text_image(text, block_size=32, font_size=20)
-
-        # Convert to numpy array
-        img_array = np.array(image)
+        arr = render_text(text, block_size=32, font_size=20)
 
         # Check if there are any black pixels (0, 0, 0) in RGB
         # Since the background is white (255, 255, 255), any text should create non-white pixels
-        has_black_pixels = np.any(img_array < 255)
+        has_black_pixels = np.any(arr < 255)
 
         assert has_black_pixels, "Rendered text should contain black pixels"
 
     def test_empty_text_no_black_pixels(self):
         """Test that rendering empty text produces no black pixels (all white)."""
-        image = render_text_image("", block_size=32, font_size=20)
-
-        # Convert to numpy array
-        img_array = np.array(image)
+        arr = render_text("", block_size=32, font_size=20)
 
         # Check that all pixels are white (255, 255, 255)
-        all_white = np.all(img_array == 255)
+        all_white = np.all(arr == 255)
 
         assert all_white, "Empty text should produce an all-white image"
 
     def test_multiple_different_texts_are_different(self):
-        """Test that different texts produce different deconstructions."""
+        """Test that different texts produce different renders."""
         texts = ["a", "b"]
-        renders = [render_text_image(text, block_size=32, font_size=20) for text in texts]
-        img_array = [np.array(render) for render in renders]
-        img_tensor = [torch.tensor(arr) for arr in img_array]
+        renders = [render_text(text, block_size=32, font_size=20) for text in texts]
+        tensors = [torch.tensor(arr) for arr in renders]
 
-        # Each text should produce a different deconstruction
-        line_a = img_tensor[0]  # First line containing "a"
-        line_b = img_tensor[1]  # Second line containing "b"
+        # Check that the two renders are different
+        are_different = not torch.equal(tensors[0], tensors[1])
 
-        # Check that the two lines are different
-        are_different = not torch.equal(line_a, line_b)
-
-        assert are_different, "Different texts 'a' and 'b' should produce different deconstructions"
+        assert are_different, "Different texts 'a' and 'b' should produce different renders"
 
     def test_multiple_identical_texts_deconstruction(self):
-        """Test that identical texts produce identical deconstructions."""
+        """Test that identical texts produce identical renders."""
         texts = ["a", "a", "a", "a"]
-        renders = [render_text_image(text, block_size=32, font_size=20) for text in texts]
-        img_array = [np.array(render) for render in renders]
-        img_tensor = [torch.tensor(arr) for arr in img_array]
+        renders = [render_text(text, block_size=32, font_size=20) for text in texts]
+        tensors = [torch.tensor(arr) for arr in renders]
 
-        # All images should be identical since they contain the same text
-        all_same = True
-        first_line = img_tensor[0]
+        # All renders should be identical since they contain the same text
+        first = tensors[0]
+        all_same = all(torch.equal(first, t) for t in tensors[1:])
 
-        for i in range(1, len(texts)):
-            if not torch.equal(first_line, img_tensor[i]):
-                all_same = False
-                break
-
-        assert all_same, "Identical texts 'a' should produce identical deconstructions"
+        assert all_same, "Identical texts 'a' should produce identical renders"
 
     def test_render_consistency(self):
         """Test that rendering the same text multiple times produces consistent results."""
         text = "consistent test"
 
         # Render the same text twice
-        image1 = render_text_image(text, block_size=32, font_size=20)
-        image2 = render_text_image(text, block_size=32, font_size=20)
-
-        # Convert to arrays
-        array1 = np.array(image1)
-        array2 = np.array(image2)
+        arr1 = render_text(text, block_size=32, font_size=20)
+        arr2 = render_text(text, block_size=32, font_size=20)
 
         # Check that both renderings are identical
-        are_identical = np.array_equal(array1, array2)
+        are_identical = np.array_equal(arr1, arr2)
 
         assert are_identical, "Rendering the same text should produce identical results"
 
     def test_newline_text_has_black_pixels(self):
-        image = render_text_image("\n", block_size=32, font_size=20)
-
-        # Convert to numpy array
-        img_array = np.array(image)
+        """Test that newline character renders with visible content."""
+        arr = render_text("\n", block_size=32, font_size=20)
 
         # Check if there are any black pixels (0, 0, 0) in RGB
         # Since the background is white (255, 255, 255), any text should create non-white pixels
-        has_black_pixels = np.any(img_array < 255)
+        has_black_pixels = np.any(arr < 255)
 
         assert has_black_pixels, "Rendered text should contain black pixels"
 
     def test_signwriting_renders_correctly(self):
+        """Test that SignWriting text renders with correct dimensions."""
         text = "𝠀񀀒񀀚񋚥񋛩𝠃𝤟𝤩񋛩𝣵𝤐񀀒𝤇𝣤񋚥𝤐𝤆񀀚𝣮𝣭"
-        image = render_text_image(text, block_size=32, font_size=20)
+        arr = render_text(text, block_size=32, font_size=20)
 
-        assert image.size == (64, 96), "Rendered image size should be (64, 96)"
-
-        # Convert to numpy array
-        img_array = np.array(image)
+        # Shape is (height, width, channels) - PIL size was (width, height) = (64, 96)
+        assert arr.shape == (96, 64, 3), f"Rendered image shape should be (96, 64, 3), got {arr.shape}"
 
         # Check if the image is not all white
-        has_black_pixels = np.any(img_array < 255)
+        has_black_pixels = np.any(arr < 255)
 
         assert has_black_pixels, "Rendered signwriting should contain black pixels"
 
@@ -118,6 +94,59 @@ class TestRenderer(unittest.TestCase):
 
         # no negative strides (torch.from_numpy would accept)
         assert not np.any(np.array(arr.strides) < 0), f"negative stride found: {arr.strides}"
+
+    def test_render_varying_lengths_shape_correctness(self):
+        """Test that rendering 1 to 100 letters produces correct shapes.
+
+        This test verifies that optimizations (surface pooling, layout reuse)
+        don't break the output dimensions for varying text lengths.
+        """
+        block_size = 16
+        font_size = 12
+        alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+        prev_width = 0
+        for length in range(1, 101):
+            # Create text of specified length by repeating alphabet
+            text = (alphabet * ((length // len(alphabet)) + 1))[:length]
+            assert len(text) == length
+
+            arr = render_text(text, block_size=block_size, font_size=font_size)
+
+            # Check shape: (height, width, channels)
+            assert arr.ndim == 3, f"Length {length}: expected 3D array, got {arr.ndim}D"
+            height, width, channels = arr.shape
+
+            # Height should equal block_size
+            assert height == block_size, f"Length {length}: height {height} != block_size {block_size}"
+
+            # Channels should be 3 (RGB)
+            assert channels == 3, f"Length {length}: channels {channels} != 3"
+
+            # Width should be a multiple of block_size
+            assert width % block_size == 0, f"Length {length}: width {width} not multiple of {block_size}"
+
+            # Width should be positive
+            assert width > 0, f"Length {length}: width should be positive"
+
+            # Longer text should generally produce wider images (with some tolerance for block alignment)
+            # We check that width doesn't decrease as text gets longer
+            assert width >= prev_width, f"Length {length}: width {width} < previous width {prev_width}"
+            prev_width = width
+
+            # Should contain non-white pixels (text was actually rendered)
+            has_content = np.any(arr < 255)
+            assert has_content, f"Length {length}: rendered text should contain non-white pixels"
+
+            # Array should be contiguous (important for downstream processing)
+            assert arr.flags['C_CONTIGUOUS'], f"Length {length}: array should be C-contiguous"
+
+            # No negative strides
+            assert all(s >= 0 for s in arr.strides), f"Length {length}: negative stride found: {arr.strides}"
+
+        # Validate final width for 100 characters is reasonable
+        # At font_size=12, each character is ~6-7px, so 100 chars ≈ 600-700px + 10px padding
+        assert 500 < prev_width < 700
 
 if __name__ == "__main__":
     unittest.main()

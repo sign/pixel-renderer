@@ -33,6 +33,7 @@ _SYMBOLS_NOTO_SANS = [
     ),
 ]
 
+# Generally not necessary, since SignWriting is rendered using an external library
 _SIGNWRITING_NOTO_SANS = [
     FontSource(
         # ofl/notosanssignwriting/NotoSansSignWriting-Regular.ttf
@@ -682,7 +683,6 @@ FONTS_NOTO_SANS = combine_fonts(
     _RARE_NOTO_SANS,
     _COLOR_EMOJI_NOTO_SANS,
     _SYMBOLS_NOTO_SANS,
-    _SIGNWRITING_NOTO_SANS,
 )
 
 FONTS_NOTO_SANS_BW = combine_fonts(
@@ -691,7 +691,6 @@ FONTS_NOTO_SANS_BW = combine_fonts(
     _RARE_NOTO_SANS,
     _BW_EMOJI_NOTO_SANS,
     _SYMBOLS_NOTO_SANS,
-    _SIGNWRITING_NOTO_SANS,
 )
 
 FONTS_NOTO_SANS_MINIMAL = combine_fonts(

@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup pango-cairo
         uses: ./.github/actions/setup-pango-cairo
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v6.5.0
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.12"
           enable-cache: true

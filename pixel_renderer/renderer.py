@@ -82,8 +82,10 @@ def render_signwriting(text: str, block_size: int = 16) -> np.ndarray:
     new_image = Image.new("RGB", (width, height), color=(255, 255, 255))
     padding = (width - image.width) // 2, (height - image.height) // 2
     new_image.paste(image, padding, image)
-    # Ensure the array is contiguous to avoid PIL misinterpreting dimensions
-    return np.ascontiguousarray(new_image)
+    # Explicitly convert PIL Image to numpy array with np.array() before ascontiguousarray()
+    # This ensures correct shape interpretation regardless of PIL's internal buffer layout
+    arr = np.array(new_image, dtype=np.uint8)
+    return np.ascontiguousarray(arr)
 
 
 @cache

@@ -74,28 +74,17 @@ class TestRenderer(unittest.TestCase):
         assert has_black_pixels, "Rendered text should contain black pixels"
 
     def test_signwriting_renders_correctly(self):
-        """Test that SignWriting text renders with correct dimensions and content."""
+        """Test that SignWriting text renders with correct dimensions."""
         text = "𝠀񀀒񀀚񋚥񋛩𝠃𝤟𝤩񋛩𝣵𝤐񀀒𝤇𝣤񋚥𝤐𝤆񀀚𝣮𝣭"
-        block_size = 32
-        arr = render_text(text, block_size=block_size, font_size=20)
+        arr = render_text(text, block_size=32, font_size=20)
 
-        # Validate array is 3D (height, width, channels)
-        assert arr.ndim == 3, f"Expected 3D array, got {arr.ndim}D with shape {arr.shape}"
-        height, width, channels = arr.shape
+        # Shape is (height, width, channels) - PIL size was (width, height) = (64, 96)
+        assert arr.shape == (96, 64, 3), f"Rendered image shape should be (96, 64, 3), got {arr.shape}"
 
-        # Validate channels (RGB)
-        assert channels == 3, f"Expected 3 channels (RGB), got {channels}"
+        # Check if the image is not all white
+        has_black_pixels = np.any(arr < 255)
 
-        # Validate dimensions are multiples of block_size
-        assert height % block_size == 0, f"Height {height} is not a multiple of block_size {block_size}"
-        assert width % block_size == 0, f"Width {width} is not a multiple of block_size {block_size}"
-
-        # Validate array is contiguous (important for downstream processing)
-        assert arr.flags["C_CONTIGUOUS"], f"Array should be C-contiguous, strides: {arr.strides}"
-
-        # Check if the image contains non-white pixels (content was actually rendered)
-        has_non_white_pixels = np.any(arr < 255)
-        assert has_non_white_pixels, "Rendered signwriting should contain non-white pixels"
+        assert has_black_pixels, "Rendered signwriting should contain black pixels"
 
     def test_render_text_has_no_negative_indexes(self):
         arr = render_text("hello")

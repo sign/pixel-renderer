@@ -94,8 +94,8 @@ class TestRenderer(unittest.TestCase):
         assert arr.flags["C_CONTIGUOUS"], f"Array should be C-contiguous, strides: {arr.strides}"
 
         # Check if the image contains non-white pixels (content was actually rendered)
-        has_black_pixels = np.any(arr < 255)
-        assert has_black_pixels, "Rendered signwriting should contain non-white pixels"
+        has_non_white_pixels = np.any(arr < 255)
+        assert has_non_white_pixels, "Rendered signwriting should contain non-white pixels"
 
     def test_render_text_has_no_negative_indexes(self):
         arr = render_text("hello")

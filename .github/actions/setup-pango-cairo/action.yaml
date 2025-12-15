@@ -16,7 +16,7 @@ runs:
       id: apt-pkgs
       shell: bash
       run: |
-        pkgs="libgirepository-1.0-1 libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository1.0-dev"
+        pkgs="libgirepository-1.0-1 libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository1.0-dev python3-dev"
         echo "pkgs=$pkgs" >> $GITHUB_OUTPUT
         echo "hash=$(echo -n "$pkgs" | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
         echo "cache_version=1" >> $GITHUB_OUTPUT
@@ -25,6 +25,7 @@ runs:
       if: runner.os == 'Linux'
       shell: bash
       run: |
+        sudo mkdir -p /var/cache/apt/archives
         sudo chown -R $USER:$USER /var/cache/apt/archives
 
         echo 'Acquire::GzipIndexes "true";' | sudo tee /etc/apt/apt.conf.d/gzip

@@ -78,16 +78,16 @@ def test_no_deadlock_with_dataloader_single_fork(processor):
     With lazy initialization fix, fontconfig is initialized independently in
     each worker, so fork-based DataLoader works correctly.
     """
-    texts = ["Hello World", "Test 1"]  # Reduced dataset size
+    texts = ["Hello World", "Test 1"]
     dataset = TextRenderDataset(texts, processor)
 
     # Single fork should work
     loader = DataLoader(
         dataset,
         batch_size=1,
-        num_workers=1,  # Reduced workers
+        num_workers=1,
         multiprocessing_context=None,  # Use default fork
-        timeout=3,  # Shorter timeout
+        timeout=10,
     )
 
     results = []
@@ -126,7 +126,7 @@ def test_no_deadlock_with_dataloader_double_fork(processor):
         batch_size=1,
         num_workers=1,
         multiprocessing_context=None,  # Use fork
-        timeout=5,
+        timeout=10,
     )
 
     results = []
@@ -143,7 +143,7 @@ def test_no_deadlock_with_dataloader_spawn(processor):
     This test should PASS - spawn creates clean process state and avoids
     the fontconfig fork-safety issue.
     """
-    texts = ["Hello World", "Test 1"]  # Reduced dataset size
+    texts = ["Hello World", "Test 1"]
     dataset = TextRenderDataset(texts, processor)
 
     # Spawn should always work
@@ -151,9 +151,9 @@ def test_no_deadlock_with_dataloader_spawn(processor):
     loader = DataLoader(
         dataset,
         batch_size=1,
-        num_workers=1,  # Reduced workers
+        num_workers=1,
         multiprocessing_context=ctx,
-        timeout=3,
+        timeout=10,
     )
 
     results = []

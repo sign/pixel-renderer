@@ -53,8 +53,8 @@ class TextRenderDataset(Dataset):
         # This is where the deadlock occurs in worker processes
         rendered = self.processor.render_text(text, block_size=16, font_size=12)
         return {
-            'text': text,
-            'rendered_shape': rendered.shape,
+            "text": text,
+            "rendered_shape": rendered.shape,
         }
 
 
@@ -92,7 +92,7 @@ def test_no_deadlock_with_dataloader_single_fork(processor):
 
     results = []
     for batch in loader:
-        results.append(batch['text'][0])
+        results.append(batch["text"][0])
 
     assert len(results) == len(texts)
 
@@ -112,7 +112,7 @@ def test_no_deadlock_with_dataloader_double_fork(processor):
     dataset = TextRenderDataset(texts, processor)
 
     # First fork (simulate pack_dataset)
-    ctx = mp.get_context('fork')
+    ctx = mp.get_context("fork")
     pool = ctx.Pool(processes=1)
     first_result = pool.apply(simulate_first_fork, (processor, "First fork"))
     pool.close()
@@ -131,7 +131,7 @@ def test_no_deadlock_with_dataloader_double_fork(processor):
 
     results = []
     for batch in loader:
-        results.append(batch['text'][0])
+        results.append(batch["text"][0])
 
     assert len(results) == len(texts)
 
@@ -147,7 +147,7 @@ def test_no_deadlock_with_dataloader_spawn(processor):
     dataset = TextRenderDataset(texts, processor)
 
     # Spawn should always work
-    ctx = mp.get_context('spawn')
+    ctx = mp.get_context("spawn")
     loader = DataLoader(
         dataset,
         batch_size=1,
@@ -158,6 +158,6 @@ def test_no_deadlock_with_dataloader_spawn(processor):
 
     results = []
     for batch in loader:
-        results.append(batch['text'][0])
+        results.append(batch["text"][0])
 
     assert len(results) == len(texts)

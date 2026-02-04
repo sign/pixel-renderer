@@ -1,7 +1,7 @@
 [project]
 name = "pixel-renderer"
 description = "Text renderer for PIXEL models"
-version = "0.0.1"
+version = "0.1.3"
 authors = [
     { name = "Ilker Kesen", email = "ilkerksn@gmail.com" },
     { name = "Amit Moryossef", email = "amit@sign.mt" },
@@ -16,7 +16,7 @@ dependencies = [
     "requests", # for font downloading
     "signwriting", # To render SignWriting images
     "platformdirs", # To manage cache directories
-    "torchvision", # Required for `AutoVideoProcessor`. TOOD remove once https://github.com/huggingface/transformers/issues/41816
+    "transformers", # Required for huggingface processors
 ]
 
 [project.optional-dependencies]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from transformers import AutoVideoProcessor, ProcessorMixin
+from transformers import AutoProcessor, ProcessorMixin
 
 from font_configurator.font_configurator import FontConfigurator
 from font_configurator.fontconfig_managers import FontconfigMode
@@ -14,10 +14,8 @@ class PixelRendererProcessor(ProcessorMixin):
     name = "pixel-renderer-processor"
     attributes = []
 
-    def __init__(self,
-                 font: FontConfig = None,
-                 **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, font: FontConfig = None) -> None:
+        super().__init__()
 
         if isinstance(font, dict):
             font = FontConfig.from_dict(font)
@@ -92,12 +90,11 @@ class PixelRendererProcessor(ProcessorMixin):
         self._ensure_fontconfig_initialized()
         return render_text_image(text, block_size=block_size, font_size=font_size)
 
-    def to_dict(self, **unused_kwargs):
-        return {
-            "font": self.font.to_dict(),
-        }
+    def to_dict(self, **kwargs):
+        output = super().to_dict(**kwargs)
+        if self.font is not None:
+            output["font"] = self.font.to_dict()
+        return output
 
 
-# TODO: register to AutoProcessor instead
-#  Using video processor as a workaround https://github.com/huggingface/transformers/issues/41816
-AutoVideoProcessor.register(FontConfig, PixelRendererProcessor)
+AutoProcessor.register(FontConfig, PixelRendererProcessor)

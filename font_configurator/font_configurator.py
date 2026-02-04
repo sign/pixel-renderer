@@ -26,6 +26,7 @@ from gi.repository import Pango, PangoCairo  # type: ignore  # noqa: E402, F401
 
 FONTCONFIG_CACHE_DIR = pathlib.Path(user_cache_dir("font_configurator"))
 
+
 class FontConfigurator:
     manager_map: ClassVar[dict[SupportedPlatforms, type[BaseFontconfigManager]]] = {
         SupportedPlatforms.DARWIN: DarwinFontconfigManager,  # macOS

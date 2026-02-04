@@ -33,8 +33,10 @@ def mock_download_setup(temp_cache_dir):
         # Create fake font file with unique content based on URL
         pathlib.Path(filename).write_bytes(f"font-content-{url}".encode())
 
-    with patch("font_download.download_fonts.urlretrieve", fake_urlretrieve), \
-         patch("font_download.download_fonts.FONT_DOWNLOAD_CACHE_DIR", temp_cache_dir):
+    with (
+        patch("font_download.download_fonts.urlretrieve", fake_urlretrieve),
+        patch("font_download.download_fonts.FONT_DOWNLOAD_CACHE_DIR", temp_cache_dir),
+    ):
         yield temp_cache_dir
 
 

@@ -72,9 +72,7 @@ class TestFontEntity:
         content = b"font data"
         font_file.write_bytes(content)
 
-        entity = FontEntity(
-            name="font.ttf", url="https://example.com/font.ttf", file_path=font_file
-        )
+        entity = FontEntity(name="font.ttf", url="https://example.com/font.ttf", file_path=font_file)
 
         assert entity.name == "font.ttf"
         assert entity.url == "https://example.com/font.ttf"
@@ -86,9 +84,7 @@ class TestFontEntity:
         font_file = tmp_path / "font.ttf"
         font_file.write_bytes(b"content")
 
-        entity = FontEntity(
-            name="font.ttf", url="https://example.com/font.ttf", file_path=str(font_file)
-        )
+        entity = FontEntity(name="font.ttf", url="https://example.com/font.ttf", file_path=str(font_file))
 
         assert isinstance(entity.file_path, pathlib.Path)
 
@@ -97,9 +93,7 @@ class TestFontEntity:
         font_file = tmp_path / "font.ttf"
         font_file.write_bytes(b"content")
 
-        entity = FontEntity(
-            name="font.ttf", url="https://example.com/font.ttf", file_path=font_file
-        )
+        entity = FontEntity(name="font.ttf", url="https://example.com/font.ttf", file_path=font_file)
 
         result = entity.to_dict()
 

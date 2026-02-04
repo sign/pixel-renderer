@@ -139,7 +139,7 @@ class TestRenderer(unittest.TestCase):
             assert has_content, f"Length {length}: rendered text should contain non-white pixels"
 
             # Array should be contiguous (important for downstream processing)
-            assert arr.flags['C_CONTIGUOUS'], f"Length {length}: array should be C-contiguous"
+            assert arr.flags["C_CONTIGUOUS"], f"Length {length}: array should be C-contiguous"
 
             # No negative strides
             assert all(s >= 0 for s in arr.strides), f"Length {length}: negative stride found: {arr.strides}"
@@ -147,6 +147,7 @@ class TestRenderer(unittest.TestCase):
         # Validate final width for 100 characters is reasonable
         # At font_size=12, each character is ~6-7px, so 100 chars ≈ 600-700px + 10px padding
         assert 500 < prev_width < 700
+
 
 if __name__ == "__main__":
     unittest.main()

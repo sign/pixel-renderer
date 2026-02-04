@@ -6,8 +6,9 @@ from urllib.parse import unquote, urlparse
 
 
 def compute_file_sha256(file_path: str | Path) -> str:
-    with open(file_path, 'rb', buffering=0) as f:
-        return hashlib.file_digest(f, 'sha256').hexdigest()
+    with open(file_path, "rb", buffering=0) as f:
+        return hashlib.file_digest(f, "sha256").hexdigest()
+
 
 @dataclass(slots=True)
 class FontSource:
@@ -27,9 +28,11 @@ class FontSource:
     def to_dict(self) -> dict:
         return asdict(self)
 
+
 FontSourceDict = dict[str, str]
 
 FontsSources = list[FontSource] | list[FontSourceDict]
+
 
 @dataclass(slots=True)
 class FontEntity:

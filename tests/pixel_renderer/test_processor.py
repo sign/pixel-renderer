@@ -66,6 +66,7 @@ class TestPixelRendererProcessor:
 
         # Should return a PIL Image
         from PIL import Image
+
         assert isinstance(result, Image.Image)
 
     def test_processor_render_with_different_params(self, font_config):
@@ -140,21 +141,26 @@ class TestPixelRendererProcessor:
 
     def test_processor_can_be_used_by_others(self):
         class OtherProcessor(ProcessorMixin):
-            name = "other-processor"
+            attributes = []
 
-            attributes = ["renderer"]
-            renderer_class = "PixelRendererProcessor"
+            def __init__(self, renderer=None):
+                super().__init__()
+                if isinstance(renderer, dict):
+                    renderer.pop("processor_class", None)
+                    renderer = PixelRendererProcessor(**renderer)
+                self.renderer = renderer
 
-            def __init__(self, renderer: PixelRendererProcessor):
-                super().__init__(renderer=renderer)
+            def to_dict(self, **kwargs):
+                output = {"processor_class": self.__class__.__name__}
+                if self.renderer:
+                    output["renderer"] = self.renderer.to_dict()
+                return output
 
         font = FontConfig(sources=FONTS_NOTO_SANS_MINIMAL)
         renderer = PixelRendererProcessor(font=font)
         processor = OtherProcessor(renderer)
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            # Save processor
             processor.save_pretrained(save_directory=temp_dir, push_to_hub=False)
-            # Load processor
             new_processor = OtherProcessor.from_pretrained(temp_dir)
             assert new_processor.renderer.font is not None

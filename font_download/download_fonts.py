@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from urllib.request import urlretrieve
 
+from filelock import FileLock
 from platformdirs import user_cache_dir
 
 from font_download.fonts import FontEntity, FontsSources
@@ -34,6 +35,9 @@ def create_fontconfig_xml(config_dir: Path) -> None:
 def download_fonts(sources: FontsSources, max_workers: int | None = None) -> Path:
     """Download fonts and create a fontconfig configuration directory.
 
+    Uses a file lock to prevent race conditions when multiple processes
+    initialize fonts concurrently (e.g., pytest-xdist workers).
+
     Steps:
     1. Downloads fonts to FONTDOWNLOAD_CACHE_DIR/"fonts" (validates SHA256)
     2. Creates unique config dir based on hash of sources
@@ -55,40 +59,50 @@ def download_fonts(sources: FontsSources, max_workers: int | None = None) -> Pat
     config_hash = _compute_sources_hash(sources)
     config_dir = config_base_dir / config_hash
 
-    # Return existing config if valid
+    # Fast path: return existing config if already complete
     if (config_dir / "sources.json").exists():
         return config_dir
 
-    config_dir.mkdir(parents=True, exist_ok=True)
+    # Ensure config base directory exists before creating lock file
+    config_base_dir.mkdir(parents=True, exist_ok=True)
 
-    def download_font_task(source):
-        """Download font and return metadata."""
-        font_path = fonts_cache_dir / source.name
+    # Use a file lock to ensure only one process initializes fonts at a time
+    lock_path = config_base_dir / f"{config_hash}.lock"
+    with FileLock(lock_path):
+        # Double-check after acquiring lock (another process may have completed)
+        if (config_dir / "sources.json").exists():
+            return config_dir
 
-        # Download if doesn't exist
-        if not font_path.exists():
-            logging.info(f"Downloading {source.name}...")
-            urlretrieve(source.url, font_path)
+        config_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create symlink in config dir
-        symlink_path = config_dir / source.name
-        # Remove existing symlink if it exists (handles broken symlinks)
-        if symlink_path.is_symlink() or symlink_path.exists():
-            symlink_path.unlink(missing_ok=True)
-        symlink_path.symlink_to(font_path)
+        def download_font_task(source):
+            """Download font and return metadata."""
+            font_path = fonts_cache_dir / source.name
 
-        return FontEntity(name=source.name, url=source.url, file_path=font_path)
+            # Download if doesn't exist
+            if not font_path.exists():
+                logging.info(f"Downloading {source.name}...")
+                urlretrieve(source.url, font_path)
 
-    # Download in parallel
-    max_workers = max_workers or os.cpu_count()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        font_metadata = list(executor.map(download_font_task, sources))
+            # Create symlink in config dir
+            symlink_path = config_dir / source.name
+            # Remove existing symlink if it exists (handles broken symlinks)
+            if symlink_path.is_symlink() or symlink_path.exists():
+                symlink_path.unlink(missing_ok=True)
+            symlink_path.symlink_to(font_path)
 
-    # Write sources.json
-    font_metadata = [font.to_dict() for font in font_metadata]
-    (config_dir / "sources.json").write_text(json.dumps(font_metadata, indent=2), encoding="utf-8")
+            return FontEntity(name=source.name, url=source.url, file_path=font_path)
 
-    # Create fontconfig XML
-    create_fontconfig_xml(config_dir)
+        # Download in parallel
+        max_workers = max_workers or os.cpu_count()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            font_metadata = list(executor.map(download_font_task, sources))
+
+        # Write sources.json
+        font_metadata = [font.to_dict() for font in font_metadata]
+        (config_dir / "sources.json").write_text(json.dumps(font_metadata, indent=2), encoding="utf-8")
+
+        # Create fontconfig XML
+        create_fontconfig_xml(config_dir)
 
     return config_dir

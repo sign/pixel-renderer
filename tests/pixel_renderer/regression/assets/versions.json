@@ -1,0 +1,8 @@
+{
+  "pixel_renderer": "0.1.4",
+  "pycairo": "1.29.0",
+  "pygobject": "3.50.2",
+  "gi": "3.50.2",
+  "cairo": "1.18.0",
+  "pango": "1.52.1"
+}

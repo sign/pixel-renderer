@@ -16,7 +16,7 @@ runs:
       id: apt-pkgs
       shell: bash
       run: |
-        pkgs="libgirepository-1.0-1 libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository1.0-dev python3-dev"
+        pkgs="libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository-2.0-dev python3-dev"
         echo "pkgs=$pkgs" >> $GITHUB_OUTPUT
         echo "hash=$(echo -n "$pkgs" | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
         echo "cache_version=1" >> $GITHUB_OUTPUT

@@ -4,16 +4,20 @@ This repository contains a text renderer for PIXEL models.
 
 ## Usage
 
-Install dependencies:
+Install dependencies (conda-forge provides pre-built Cairo, Pango and PyGObject):
 
 ```shell
 conda create -n pixel python=3.12 -y
 conda activate pixel
+conda install -c conda-forge pycairo pygobject pango -y
 pip install ".[dev,pangocairo]"
 ```
 
 > [!TIP]
-> Having trouble installing `pycairo` and `pygobject`? 
+> Without conda, `pycairo` and `PyGObject` are compiled from source and need system libraries.
+> On Ubuntu 24.04+ / Debian 13+:
+> `sudo apt install gcc pkg-config libcairo2-dev libgirepository-2.0-dev gir1.2-pango-1.0 python3-dev`.
+> On older systems (GLib < 2.80, e.g. Ubuntu 22.04), install `libgirepository1.0-dev` and `pip install "PyGObject<3.52"`.
 > See [these instructions](https://pygobject.readthedocs.io/en/latest/getting_started.html#installing-pygobject).
 
 Install:

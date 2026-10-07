@@ -29,7 +29,7 @@ dev = [
 
 pangocairo = [
     "pycairo", # To render images using Cairo
-    "PyGObject<3.52", # Use PyGObject < 3.52 which supports girepository-1.0
+    "PyGObject", # Python bindings for Pango (via GObject introspection)
 ]
 
 [tool.setuptools]

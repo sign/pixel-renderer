@@ -5,7 +5,8 @@ RUN sed -i 's|http://|https://|g' /etc/apt/sources.list.d/*.sources
 RUN apt-get update -q
 
 # Install rendering system dependencies
-RUN apt-get install -y libgirepository-1.0-1 libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository1.0-dev
+# (pycairo and PyGObject have no Linux wheels, so they are compiled from source)
+RUN apt-get install -y gcc libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository-2.0-dev
 
 COPY . /pixel-renderer
 WORKDIR /pixel-renderer

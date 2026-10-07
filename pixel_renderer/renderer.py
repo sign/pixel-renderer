@@ -11,6 +11,10 @@ from utf8_tokenizer.control import visualize_control_tokens
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
 gi.require_foreign("cairo")
+# Pillow's FreeType must be loaded before Pango: GI loads Pango with RTLD_GLOBAL, after which Pillow's
+# bundled FreeType/HarfBuzz would bind to the system libraries and corrupt SignWriting rendering.
+# See https://github.com/sign/pixel-renderer/issues/16
+from PIL import ImageFont  # noqa: E402, F401, I001
 from gi.repository import Pango, PangoCairo  # noqa: E402
 
 # Reusable measurement context - avoids creating new surface/context/layout per call

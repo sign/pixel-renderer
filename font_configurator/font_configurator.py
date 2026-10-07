@@ -22,6 +22,10 @@ from font_configurator.fontconfig_managers import (
 
 gi.require_version("Pango", "1.0")
 gi.require_version("PangoCairo", "1.0")
+# Pillow's FreeType must be loaded before Pango: GI loads Pango with RTLD_GLOBAL, after which Pillow's
+# bundled FreeType/HarfBuzz would bind to the system libraries and corrupt SignWriting rendering.
+# See https://github.com/sign/pixel-renderer/issues/16
+from PIL import ImageFont  # noqa: E402, F401, I001
 from gi.repository import Pango, PangoCairo  # type: ignore  # noqa: E402, F401
 
 FONTCONFIG_CACHE_DIR = pathlib.Path(user_cache_dir("font_configurator"))

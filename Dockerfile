@@ -1,16 +1,13 @@
-FROM python:3.14-slim
+FROM mambaorg/micromamba:2.9.0-debian13
 
-# Setup package manager
-RUN sed -i 's|http://|https://|g' /etc/apt/sources.list.d/*.sources
-RUN apt-get update -q
+# Rendering stack from conda-forge, which ships the latest Pango, cairo and PyGObject
+RUN micromamba install -y -n base -c conda-forge python=3.12 pango pycairo pygobject && \
+    micromamba clean -a -y
 
-# Install rendering system dependencies
-# (pycairo and PyGObject have no Linux wheels, so they are compiled from source)
-RUN apt-get install -y gcc libcairo2 gir1.2-pango-1.0 pkg-config libcairo2-dev libgirepository-2.0-dev
-
-COPY . /pixel-renderer
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+COPY --chown=$MAMBA_USER:$MAMBA_USER . /pixel-renderer
 WORKDIR /pixel-renderer
-RUN pip install ".[pangocairo]"
+RUN pip install --no-cache-dir ".[pangocairo]"
 
 CMD ["python", "-c", "from pixel_renderer import render_text; print(render_text('test', 16, 12).shape); print('✅')"]
 

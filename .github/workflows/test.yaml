@@ -20,18 +20,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup pango-cairo
-        uses: ./.github/actions/setup-pango-cairo
-
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v7
+      # conda-forge ships the latest Pango, cairo and PyGObject
+      - name: Setup rendering stack
+        uses: mamba-org/setup-micromamba@v3
         with:
-          python-version: "3.12"
-          enable-cache: true
-          activate-environment: true
+          environment-name: pixel
+          create-args: -c conda-forge python=3.12 pango pycairo pygobject
+          cache-downloads: true
 
       - name: Install dependencies
-        run: uv pip install ".[dev,pangocairo]" "transformers${{ matrix.transformers }}"
+        shell: bash -el {0}
+        run: pip install ".[dev,pangocairo]" "transformers${{ matrix.transformers }}"
+
+      - name: Rendering stack versions
+        shell: bash -el {0}
+        run: micromamba list -n pixel "^(pango|cairo|harfbuzz|pygobject|pycairo)$"
 
       - name: Test code
-        run: uv run pytest -n auto --dist loadscope
+        shell: bash -el {0}
+        run: pytest -n auto --dist loadscope
